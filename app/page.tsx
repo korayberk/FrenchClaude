@@ -9,6 +9,7 @@ import VerbWidget from "@/components/VerbWidget";
 import Carousel from "@/components/Carousel";
 import { ConjugateResponse, VerbConjugation } from "./api/conjugate/route";
 import { HistoryEntry, loadHistory, saveEntry, deleteEntry } from "@/lib/history";
+import { ModelId, DEFAULT_MODEL } from "@/components/ApiKeyInput";
 
 export default function Home() {
   const [apiKey, setApiKey] = useState("");
@@ -21,6 +22,7 @@ export default function Home() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [correctedFrom, setCorrectedFrom] = useState<string | null>(null);
   const [inputCollapsed, setInputCollapsed] = useState(false);
+  const [model, setModel] = useState<ModelId>(DEFAULT_MODEL);
 
   // Verbs — fetched lazily when user opens the Verbs tab
   const [verbs, setVerbs] = useState<VerbConjugation[] | null>(null);
@@ -29,6 +31,7 @@ export default function Home() {
   const verbSentenceRef = useRef<string>("");   // tracks which sentence verbs were fetched for
 
   const handleKeyChange = useCallback((key: string) => setApiKey(key), []);
+  const handleModelChange = useCallback((m: ModelId) => setModel(m), []);
 
   const fetchVerbs = useCallback(async (sentenceToUse: string, apiKeyToUse: string) => {
     if (!sentenceToUse || !apiKeyToUse) return;
@@ -37,7 +40,7 @@ export default function Home() {
       const res = await fetch("/api/verbs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sentence: sentenceToUse, apiKey: apiKeyToUse }),
+        body: JSON.stringify({ sentence: sentenceToUse, apiKey: apiKeyToUse, model }),
       });
       const data = await res.json();
       setVerbs(data.verbs ?? []);
@@ -73,7 +76,7 @@ export default function Home() {
       const res = await fetch("/api/conjugate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sentence: sentence.trim(), apiKey }),
+        body: JSON.stringify({ sentence: sentence.trim(), apiKey, model }),
       });
 
       if (!res.ok) {
@@ -182,7 +185,7 @@ export default function Home() {
                 </p>
               </div>
             </div>
-            <ApiKeyInput onKeyChange={handleKeyChange} />
+            <ApiKeyInput onKeyChange={handleKeyChange} onModelChange={handleModelChange} />
           </div>
 
           {inputCollapsed && result ? (

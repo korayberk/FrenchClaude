@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { VerbConjugation } from "@/app/api/conjugate/route";
 
 export async function POST(req: NextRequest) {
-  const { sentence, apiKey } = await req.json();
+  const { sentence, apiKey, model = "claude-sonnet-4-6" } = await req.json();
 
   if (!sentence || !apiKey) {
     return NextResponse.json({ error: "Missing sentence or API key" }, { status: 400 });
@@ -29,7 +29,7 @@ Réponds UNIQUEMENT avec du JSON valide, sans markdown :
 ]`;
 
   const message = await client.messages.create({
-    model: "claude-sonnet-4-6",
+    model,
     max_tokens: 1024,
     system: "Tu es un expert en conjugaison française. Réponds uniquement avec du JSON valide.",
     messages: [{ role: "user", content: userPrompt }],
