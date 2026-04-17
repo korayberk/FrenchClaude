@@ -10,7 +10,12 @@ export interface TenseVariation {
 
 export interface VerbConjugation {
   verb: string;
-  conjugations: { tense: string; form: string }[];
+  conjugations: {
+    tense: string;
+    sentence_form: string;
+    il_elle: string;
+    ils_elles: string;
+  }[];
 }
 
 export interface ConjugateResponse {
@@ -41,12 +46,12 @@ export async function POST(req: NextRequest) {
   const userPrompt = `Voici une phrase en français : "${sentence}"
 
 1. Identifie le temps de cette phrase (en français).
-2. Génère 3-4 variations dans des temps PLUS SIMPLES ou ÉQUIVALENTS (jamais plus complexes que l'original). Évite le subjonctif et les temps composés avancés.
+2. Génère des variations dans TOUS les temps pertinents qui sont plus simples ou équivalents au temps original — couvre tout le spectre temporel accessible à un apprenant (passé lointain, passé, présent, futur, conditionnel). Ne limite pas le nombre : génère autant que cela a du sens grammaticalement. Évite le subjonctif.
 3. Pour l'original et chaque variation, fournis :
    - la phrase en français
    - sa traduction en anglais naturel
-   - une courte note d'usage en anglais (1 phrase concise, ex: "Used for completed past actions with a clear endpoint")
-4. Identifie tous les verbes conjugués dans la phrase originale. Pour chaque verbe, fournis sa conjugaison à la même personne/nombre en : Présent, Imparfait, Passé composé, Futur simple.
+   - une courte note d'usage en anglais (1 phrase concise)
+4. Identifie tous les verbes conjugués dans la phrase originale. Pour chaque verbe, fournis — à ces 4 temps : Présent, Imparfait, Passé composé, Futur simple — trois formes : la forme telle qu'elle apparaît dans la phrase (même personne/nombre), la forme il/elle, et la forme ils/elles.
 
 Réponds UNIQUEMENT avec du JSON valide, sans markdown, dans ce format exact :
 {
@@ -58,10 +63,10 @@ Réponds UNIQUEMENT avec du JSON valide, sans markdown, dans ce format exact :
     {
       "verb": "infinitif",
       "conjugations": [
-        { "tense": "Présent", "form": "..." },
-        { "tense": "Imparfait", "form": "..." },
-        { "tense": "Passé composé", "form": "..." },
-        { "tense": "Futur simple", "form": "..." }
+        { "tense": "Présent", "sentence_form": "...", "il_elle": "...", "ils_elles": "..." },
+        { "tense": "Imparfait", "sentence_form": "...", "il_elle": "...", "ils_elles": "..." },
+        { "tense": "Passé composé", "sentence_form": "...", "il_elle": "...", "ils_elles": "..." },
+        { "tense": "Futur simple", "sentence_form": "...", "il_elle": "...", "ils_elles": "..." }
       ]
     }
   ]
@@ -69,7 +74,7 @@ Réponds UNIQUEMENT avec du JSON valide, sans markdown, dans ce format exact :
 
   const message = await client.messages.create({
     model: "claude-sonnet-4-6",
-    max_tokens: 1536,
+    max_tokens: 2048,
     system: SYSTEM_PROMPT,
     messages: [{ role: "user", content: userPrompt }],
   });

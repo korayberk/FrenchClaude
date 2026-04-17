@@ -76,7 +76,7 @@ export default function TenseCard({ tense, french, english, usage, highlight }: 
         <p
           className="text-[12px] leading-relaxed pt-1"
           style={{
-            color: highlight ? "rgba(255,255,255,0.4)" : "var(--tertiary-label)",
+            color: highlight ? "rgba(255,255,255,0.55)" : "var(--secondary-label)",
             borderTop: highlight ? "1px solid rgba(255,255,255,0.12)" : "1px solid var(--separator)",
           }}
         >

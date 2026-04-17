@@ -6,6 +6,7 @@ import SentenceInput from "@/components/SentenceInput";
 import HistoryPanel from "@/components/HistoryPanel";
 import TimelineResults from "@/components/TimelineResults";
 import VerbWidget from "@/components/VerbWidget";
+import Carousel from "@/components/Carousel";
 import { ConjugateResponse } from "./api/conjugate/route";
 import {
   HistoryEntry,
@@ -156,11 +157,21 @@ export default function Home() {
           )}
 
           {result && (
-            <div className="mt-8 flex flex-col gap-6">
-              <TimelineResults result={result} />
-              {result.verbs && result.verbs.length > 0 && (
-                <VerbWidget verbs={result.verbs} />
-              )}
+            <div className="mt-8">
+              <Carousel
+                slides={[
+                  {
+                    label: "Sentences",
+                    content: <TimelineResults result={result} />,
+                  },
+                  {
+                    label: "Verbs",
+                    content: result.verbs && result.verbs.length > 0
+                      ? <VerbWidget verbs={result.verbs} />
+                      : <p className="text-[13px] py-4" style={{ color: "var(--tertiary-label)" }}>No verbs found.</p>,
+                  },
+                ]}
+              />
             </div>
           )}
         </div>
