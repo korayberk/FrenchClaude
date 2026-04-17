@@ -3,8 +3,8 @@
 import { useCallback, useState } from "react";
 import ApiKeyInput from "@/components/ApiKeyInput";
 import SentenceInput from "@/components/SentenceInput";
-import TenseCard from "@/components/TenseCard";
 import HistoryPanel from "@/components/HistoryPanel";
+import TimelineResults from "@/components/TimelineResults";
 import { ConjugateResponse } from "./api/conjugate/route";
 import {
   HistoryEntry,
@@ -155,21 +155,8 @@ export default function Home() {
           )}
 
           {result && (
-            <div className="flex flex-col gap-3 mt-8">
-              <TenseCard
-                tense={result.original.tense}
-                french={result.original.french}
-                english={result.original.english}
-                highlight
-              />
-              {result.variations.map((v, i) => (
-                <TenseCard
-                  key={i}
-                  tense={v.tense}
-                  french={v.french}
-                  english={v.english}
-                />
-              ))}
+            <div className="mt-8">
+              <TimelineResults result={result} />
             </div>
           )}
         </div>

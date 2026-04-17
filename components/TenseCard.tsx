@@ -32,22 +32,26 @@ export default function TenseCard({ tense, french, english, highlight }: TenseCa
     <div
       className="rounded-2xl px-5 py-4 flex flex-col gap-2"
       style={{
-        background: highlight ? "#FAFAFA" : "var(--card)",
-        border: highlight ? "1.5px solid #D2D2D7" : "1px solid var(--separator)",
+        background: highlight ? "var(--foreground)" : "var(--card)",
+        border: highlight ? "1.5px solid var(--foreground)" : "1px solid var(--separator)",
         boxShadow: highlight
-          ? "0 2px 8px rgba(0,0,0,0.08)"
+          ? "0 4px 16px rgba(0,0,0,0.18)"
           : "0 1px 3px rgba(0,0,0,0.05)",
       }}
     >
       <div className="flex items-center gap-2">
         <span
           className="text-[11px] font-semibold px-2.5 py-[3px] rounded-full tracking-wide uppercase"
-          style={badge}
+          style={
+            highlight
+              ? { background: "rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.85)" }
+              : badge
+          }
         >
           {tense}
         </span>
         {highlight && (
-          <span className="text-[11px] font-medium" style={{ color: "var(--tertiary-label)" }}>
+          <span className="text-[11px] font-medium" style={{ color: "rgba(255,255,255,0.5)" }}>
             your sentence
           </span>
         )}
@@ -55,14 +59,14 @@ export default function TenseCard({ tense, french, english, highlight }: TenseCa
 
       <p
         className="text-[18px] font-medium leading-snug"
-        style={{ color: "var(--foreground)" }}
+        style={{ color: highlight ? "#FFFFFF" : "var(--foreground)" }}
       >
         {french}
       </p>
 
       <p
         className="text-[14px] leading-relaxed"
-        style={{ color: "var(--secondary-label)" }}
+        style={{ color: highlight ? "rgba(255,255,255,0.65)" : "var(--secondary-label)" }}
       >
         {english}
       </p>
