@@ -27,25 +27,33 @@ export default function Home() {
   // Verbs — fetched lazily when user opens the Verbs tab
   const [verbs, setVerbs] = useState<VerbConjugation[] | null>(null);
   const [verbsLoading, setVerbsLoading] = useState(false);
+  const [verbsError, setVerbsError] = useState<string | null>(null);
   const [verbUsage, setVerbUsage] = useState<{ input: number; output: number } | null>(null);
   const verbSentenceRef = useRef<string>("");   // tracks which sentence verbs were fetched for
 
   const handleKeyChange = useCallback((key: string) => setApiKey(key), []);
   const handleModelChange = useCallback((m: ModelId) => setModel(m), []);
 
-  const fetchVerbs = useCallback(async (sentenceToUse: string, apiKeyToUse: string) => {
+  const fetchVerbs = useCallback(async (sentenceToUse: string, apiKeyToUse: string, modelToUse: string) => {
     if (!sentenceToUse || !apiKeyToUse) return;
     setVerbsLoading(true);
+    setVerbsError(null);
     try {
       const res = await fetch("/api/verbs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sentence: sentenceToUse, apiKey: apiKeyToUse, model }),
+        body: JSON.stringify({ sentence: sentenceToUse, apiKey: apiKeyToUse, model: modelToUse }),
       });
       const data = await res.json();
-      setVerbs(data.verbs ?? []);
-      if (data._usage) setVerbUsage(data._usage);
-    } catch {
+      if (data.error) {
+        setVerbsError(data.error);
+        setVerbs([]);
+      } else {
+        setVerbs(data.verbs ?? []);
+        if (data._usage) setVerbUsage(data._usage);
+      }
+    } catch (e) {
+      setVerbsError(e instanceof Error ? e.message : "Unknown error");
       setVerbs([]);
     } finally {
       setVerbsLoading(false);
@@ -57,8 +65,8 @@ export default function Home() {
     if (verbs !== null) return;                      // already fetched
     if (verbSentenceRef.current === sentence) return; // same sentence
     verbSentenceRef.current = sentence;
-    fetchVerbs(sentence, apiKey);
-  }, [verbs, sentence, apiKey, fetchVerbs]);
+    fetchVerbs(sentence, apiKey, model);
+  }, [verbs, sentence, apiKey, model, fetchVerbs]);
 
   const handleSubmit = async () => {
     if (!sentence.trim() || !apiKey) return;
@@ -69,6 +77,7 @@ export default function Home() {
     setCorrectedFrom(null);
     setInputCollapsed(false);
     setVerbs(null);
+    setVerbsError(null);
     setVerbUsage(null);
     verbSentenceRef.current = "";
 
@@ -119,6 +128,7 @@ export default function Home() {
     setCorrectedFrom(null);
     setInputCollapsed(true);
     setVerbs(null);
+    setVerbsError(null);
     setVerbUsage(null);
     verbSentenceRef.current = "";
   };
@@ -136,6 +146,11 @@ export default function Home() {
         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
       </svg>
       <span className="text-[13px]">Looking up conjugations…</span>
+    </div>
+  ) : verbsError ? (
+    <div className="rounded-xl text-[14px] px-4 py-3"
+      style={{ background: "#FFF1F2", color: "#9F1239", border: "1px solid #FFE4E6" }}>
+      {verbsError}
     </div>
   ) : (
     <div className="flex flex-col gap-2">

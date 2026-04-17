@@ -30,10 +30,14 @@ Réponds UNIQUEMENT avec du JSON valide, sans markdown :
 
   const message = await client.messages.create({
     model,
-    max_tokens: 1024,
+    max_tokens: 4096,
     system: "Tu es un expert en conjugaison française. Réponds uniquement avec du JSON valide.",
     messages: [{ role: "user", content: userPrompt }],
   });
+
+  if (message.stop_reason === "max_tokens") {
+    return NextResponse.json({ error: "Response truncated — try a shorter sentence." }, { status: 500 });
+  }
 
   const rawText = message.content[0].type === "text" ? message.content[0].text : "";
   const start = rawText.indexOf("[");
@@ -46,7 +50,8 @@ Réponds UNIQUEMENT avec du JSON valide, sans markdown :
       verbs,
       _usage: { input: message.usage.input_tokens, output: message.usage.output_tokens },
     });
-  } catch {
-    return NextResponse.json({ verbs: [] });
+  } catch (e) {
+    console.error("[/api/verbs] JSON parse failed:", e, "\nRaw text:", rawText);
+    return NextResponse.json({ error: "Could not parse verb response — please try again." }, { status: 500 });
   }
 }
