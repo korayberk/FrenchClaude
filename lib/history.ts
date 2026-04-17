@@ -42,6 +42,27 @@ export function groupByTense(entries: HistoryEntry[]): Record<string, HistoryEnt
   return groups;
 }
 
+export function groupByDay(entries: HistoryEntry[]): { label: string; entries: HistoryEntry[] }[] {
+  const map = new Map<string, HistoryEntry[]>();
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const yesterdayStart = todayStart - 86400000;
+
+  for (const entry of entries) {
+    const d = new Date(entry.createdAt);
+    const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    let label: string;
+    if (dayStart === todayStart) label = "Today";
+    else if (dayStart === yesterdayStart) label = "Yesterday";
+    else label = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+
+    if (!map.has(label)) map.set(label, []);
+    map.get(label)!.push(entry);
+  }
+
+  return Array.from(map.entries()).map(([label, entries]) => ({ label, entries }));
+}
+
 export function relativeTime(ts: number): string {
   const diff = Date.now() - ts;
   const m = Math.floor(diff / 60000);

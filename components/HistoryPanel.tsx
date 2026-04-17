@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { HistoryEntry, groupByTense, relativeTime } from "@/lib/history";
+import { HistoryEntry, groupByTense, groupByDay, relativeTime } from "@/lib/history";
 
 type SortMode = "tense" | "date-desc" | "date-asc";
 
@@ -25,18 +25,37 @@ export default function HistoryPanel({
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [mode, setMode] = useState<SortMode>("tense");
 
-  const groups = groupByTense(entries);
-  const tenses = Object.keys(groups).sort();
+  const toggleSection = (key: string) =>
+    setCollapsed((c) => ({ ...c, [key]: !c[key] }));
 
-  const sortedByDate = [...entries].sort((a, b) =>
+  const tenseGroups = groupByTense(entries);
+  const tenses = Object.keys(tenseGroups).sort();
+
+  const sorted = [...entries].sort((a, b) =>
     mode === "date-asc" ? a.createdAt - b.createdAt : b.createdAt - a.createdAt
   );
+  const dayGroups = groupByDay(sorted);
 
   const MODES: { key: SortMode; label: string }[] = [
     { key: "tense",     label: "Tense" },
     { key: "date-desc", label: "New" },
     { key: "date-asc",  label: "Old" },
   ];
+
+  const SectionHeader = ({ label, count, sectionKey }: { label: string; count: number; sectionKey: string }) => (
+    <button
+      onClick={() => toggleSection(sectionKey)}
+      className="w-full flex items-center justify-between px-4 py-2 sticky top-0"
+      style={{ background: "#FAFAFA", borderBottom: "1px solid var(--separator)" }}
+    >
+      <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: "var(--secondary-label)" }}>
+        {label}
+      </span>
+      <span className="text-[11px]" style={{ color: "var(--tertiary-label)" }}>
+        {collapsed[sectionKey] ? "▸" : "▾"} {count}
+      </span>
+    </button>
+  );
 
   const panel = (
     <div
@@ -49,19 +68,10 @@ export default function HistoryPanel({
         style={{ borderBottom: "1px solid var(--separator)" }}
       >
         <div className="flex items-center justify-between">
-          <span className="text-[13px] font-semibold" style={{ color: "var(--foreground)" }}>
-            History
-          </span>
-          <span className="text-[12px]" style={{ color: "var(--tertiary-label)" }}>
-            {entries.length}
-          </span>
+          <span className="text-[13px] font-semibold" style={{ color: "var(--foreground)" }}>History</span>
+          <span className="text-[12px]" style={{ color: "var(--tertiary-label)" }}>{entries.length}</span>
         </div>
-
-        {/* Sort control */}
-        <div
-          className="flex rounded-lg p-0.5"
-          style={{ background: "var(--separator)" }}
-        >
+        <div className="flex rounded-lg p-0.5" style={{ background: "var(--separator)" }}>
           {MODES.map(({ key, label }) => (
             <button
               key={key}
@@ -88,41 +98,34 @@ export default function HistoryPanel({
         ) : mode === "tense" ? (
           tenses.map((tense) => (
             <div key={tense}>
-              <button
-                onClick={() => setCollapsed((c) => ({ ...c, [tense]: !c[tense] }))}
-                className="w-full flex items-center justify-between px-4 py-2 sticky top-0"
-                style={{ background: "#FAFAFA", borderBottom: "1px solid var(--separator)" }}
-              >
-                <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: "var(--secondary-label)" }}>
-                  {tense}
-                </span>
-                <span className="text-[11px]" style={{ color: "var(--tertiary-label)" }}>
-                  {collapsed[tense] ? "▸" : "▾"} {groups[tense].length}
-                </span>
-              </button>
-              {!collapsed[tense] &&
-                groups[tense].map((entry) => (
-                  <EntryRow
-                    key={entry.id}
-                    entry={entry}
-                    selected={entry.id === selectedId}
-                    showTense={false}
-                    onSelect={() => { onSelect(entry); onClose(); }}
-                    onDelete={() => onDelete(entry.id)}
-                  />
-                ))}
+              <SectionHeader label={tense} count={tenseGroups[tense].length} sectionKey={tense} />
+              {!collapsed[tense] && tenseGroups[tense].map((entry) => (
+                <EntryRow
+                  key={entry.id}
+                  entry={entry}
+                  selected={entry.id === selectedId}
+                  showTense={false}
+                  onSelect={() => { onSelect(entry); onClose(); }}
+                  onDelete={() => onDelete(entry.id)}
+                />
+              ))}
             </div>
           ))
         ) : (
-          sortedByDate.map((entry) => (
-            <EntryRow
-              key={entry.id}
-              entry={entry}
-              selected={entry.id === selectedId}
-              showTense
-              onSelect={() => { onSelect(entry); onClose(); }}
-              onDelete={() => onDelete(entry.id)}
-            />
+          dayGroups.map(({ label, entries: dayEntries }) => (
+            <div key={label}>
+              <SectionHeader label={label} count={dayEntries.length} sectionKey={label} />
+              {!collapsed[label] && dayEntries.map((entry) => (
+                <EntryRow
+                  key={entry.id}
+                  entry={entry}
+                  selected={entry.id === selectedId}
+                  showTense
+                  onSelect={() => { onSelect(entry); onClose(); }}
+                  onDelete={() => onDelete(entry.id)}
+                />
+              ))}
+            </div>
           ))
         )}
       </div>
@@ -143,11 +146,7 @@ export default function HistoryPanel({
 }
 
 function EntryRow({
-  entry,
-  selected,
-  showTense,
-  onSelect,
-  onDelete,
+  entry, selected, showTense, onSelect, onDelete,
 }: {
   entry: HistoryEntry;
   selected: boolean;

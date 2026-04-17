@@ -55,13 +55,9 @@ export async function POST(req: NextRequest) {
    - une courte note d'usage en anglais (1 phrase concise)
 4. Identifie tous les verbes conjugués dans la phrase originale. Pour chaque verbe, fournis — à ces 4 temps : Présent, Imparfait, Passé composé, Futur simple — trois formes : la forme telle qu'elle apparaît dans la phrase (même personne/nombre), la forme il/elle, et la forme ils/elles.
 
-Réponds UNIQUEMENT avec du JSON valide, sans markdown, dans ce format exact :
+Réponds UNIQUEMENT avec du JSON valide, sans markdown, dans ce format exact (respecte cet ordre de champs) :
 {
   "corrected_input": "...",
-  "original": { "french": "...", "tense": "...", "english": "...", "usage": "..." },
-  "variations": [
-    { "tense": "...", "french": "...", "english": "...", "usage": "..." }
-  ],
   "verbs": [
     {
       "verb": "infinitif",
@@ -72,12 +68,16 @@ Réponds UNIQUEMENT avec du JSON valide, sans markdown, dans ce format exact :
         { "tense": "Futur simple", "sentence_form": "...", "il_elle": "...", "ils_elles": "..." }
       ]
     }
+  ],
+  "original": { "french": "...", "tense": "...", "english": "...", "usage": "..." },
+  "variations": [
+    { "tense": "...", "french": "...", "english": "...", "usage": "..." }
   ]
 }`;
 
   const message = await client.messages.create({
     model: "claude-sonnet-4-6",
-    max_tokens: 4096,
+    max_tokens: 8192,
     system: SYSTEM_PROMPT,
     messages: [{ role: "user", content: userPrompt }],
   });
