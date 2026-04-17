@@ -19,6 +19,7 @@ export interface VerbConjugation {
 }
 
 export interface ConjugateResponse {
+  corrected_input?: string;
   original: {
     french: string;
     tense: string;
@@ -43,9 +44,10 @@ export async function POST(req: NextRequest) {
 
   const client = new Anthropic({ apiKey });
 
-  const userPrompt = `Voici une phrase en français : "${sentence}"
+  const userPrompt = `Voici une phrase en français (telle que saisie par l'utilisateur, potentiellement avec des fautes) : "${sentence}"
 
-1. Identifie le temps de cette phrase (en français).
+0. Corrige silencieusement toutes les fautes d'orthographe, d'accentuation et de ponctuation. Si tu as fait des corrections, retourne la phrase corrigée dans le champ "corrected_input". Si la phrase était déjà correcte, omet ce champ.
+1. Utilise la phrase corrigée pour tout ce qui suit. Identifie le temps de cette phrase (en français).
 2. Génère des variations dans TOUS les temps pertinents qui sont plus simples ou équivalents au temps original — couvre tout le spectre temporel accessible à un apprenant (passé lointain, passé, présent, futur, conditionnel). Ne limite pas le nombre : génère autant que cela a du sens grammaticalement. Évite le subjonctif.
 3. Pour l'original et chaque variation, fournis :
    - la phrase en français
@@ -55,6 +57,7 @@ export async function POST(req: NextRequest) {
 
 Réponds UNIQUEMENT avec du JSON valide, sans markdown, dans ce format exact :
 {
+  "corrected_input": "...",
   "original": { "french": "...", "tense": "...", "english": "...", "usage": "..." },
   "variations": [
     { "tense": "...", "french": "...", "english": "...", "usage": "..." }

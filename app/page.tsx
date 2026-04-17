@@ -24,6 +24,7 @@ export default function Home() {
   const [history, setHistory] = useState<HistoryEntry[]>(() => loadHistory());
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [correctedFrom, setCorrectedFrom] = useState<string | null>(null);
 
   const handleKeyChange = useCallback((key: string) => setApiKey(key), []);
 
@@ -33,6 +34,7 @@ export default function Home() {
     setError(null);
     setResult(null);
     setSelectedId(null);
+    setCorrectedFrom(null);
 
     try {
       const res = await fetch("/api/conjugate", {
@@ -49,9 +51,16 @@ export default function Home() {
       const data: ConjugateResponse = await res.json();
       setResult(data);
 
+      const raw = sentence.trim();
+      const final = data.corrected_input ?? raw;
+      if (data.corrected_input && data.corrected_input !== raw) {
+        setCorrectedFrom(raw);
+        setSentence(data.corrected_input);
+      }
+
       const entry: HistoryEntry = {
         id: Date.now().toString(),
-        sentence: sentence.trim(),
+        sentence: final,
         tense: data.original.tense,
         result: data,
         createdAt: Date.now(),
@@ -134,12 +143,25 @@ export default function Home() {
           >
             <SentenceInput
               value={sentence}
-              onChange={setSentence}
+              onChange={(v) => { setSentence(v); setCorrectedFrom(null); }}
               onSubmit={handleSubmit}
               loading={loading}
               hasApiKey={!!apiKey}
             />
           </div>
+
+          {correctedFrom && (
+            <div
+              className="flex items-start gap-2 rounded-xl px-4 py-2.5 mb-3 text-[13px]"
+              style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", color: "#166534" }}
+            >
+              <span className="shrink-0 mt-px">✓</span>
+              <span>
+                <span className="font-medium">Corrected: </span>
+                <span style={{ opacity: 0.7 }}>&ldquo;{correctedFrom}&rdquo;</span>
+              </span>
+            </div>
+          )}
 
           {!apiKey && (
             <p className="text-[13px] mb-8" style={{ color: "var(--tertiary-label)" }}>
