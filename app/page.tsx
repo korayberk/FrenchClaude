@@ -227,9 +227,7 @@ export default function Home() {
                 },
                 {
                   label: "Verbs",
-                  content: result.verbs && result.verbs.length > 0
-                    ? <VerbWidget verbs={result.verbs} />
-                    : <p className="text-[13px] py-4" style={{ color: "var(--tertiary-label)" }}>No verbs found.</p>,
+                  content: <VerbWidget verbs={result.verbs ?? []} />,
                 },
               ]}
             />

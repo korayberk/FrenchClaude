@@ -9,12 +9,25 @@ const TENSE_ZONE: Record<string, string> = {
   "Futur simple":    "future",
 };
 
+function findRow(conjugations: VerbConjugation["conjugations"], tense: string) {
+  return conjugations.find(
+    (c) => c.tense.toLowerCase().replace(/\s+/g, " ").trim() ===
+           tense.toLowerCase().replace(/\s+/g, " ").trim()
+  );
+}
+
 interface Props {
   verbs: VerbConjugation[];
 }
 
 export default function VerbWidget({ verbs }: Props) {
-  if (!verbs || verbs.length === 0) return null;
+  if (!verbs || verbs.length === 0) {
+    return (
+      <p className="text-[13px] py-4" style={{ color: "var(--tertiary-label)" }}>
+        No verb data — try conjugating again.
+      </p>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -69,7 +82,7 @@ export default function VerbWidget({ verbs }: Props) {
               </thead>
               <tbody>
                 {TENSES.map((tense, ti) => {
-                  const row = v.conjugations.find((c) => c.tense === tense);
+                  const row = findRow(v.conjugations, tense);
                   return (
                     <tr
                       key={tense}
