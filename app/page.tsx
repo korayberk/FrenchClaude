@@ -45,21 +45,31 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex flex-col items-center px-4 py-12">
-      <div className="w-full max-w-2xl">
-        <div className="flex items-center justify-between mb-8">
+    <main className="min-h-screen flex flex-col items-center px-5 pt-16 pb-24" style={{ background: "var(--background)" }}>
+      <div className="w-full max-w-[640px]">
+
+        {/* Header */}
+        <div className="flex items-start justify-between mb-10">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
-              🇫🇷 French Tenses
+            <h1 className="text-[28px] font-semibold tracking-tight" style={{ color: "var(--foreground)" }}>
+              French Tenses
             </h1>
-            <p className="text-sm text-gray-400 mt-0.5">
-              Paste a sentence — see it across tenses
+            <p className="text-[15px] mt-1" style={{ color: "var(--secondary-label)" }}>
+              Type a sentence in French — see it across tenses
             </p>
           </div>
           <ApiKeyInput onKeyChange={handleKeyChange} />
         </div>
 
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 mb-6">
+        {/* Input card */}
+        <div
+          className="rounded-2xl mb-3"
+          style={{
+            background: "var(--card)",
+            border: "1px solid var(--separator)",
+            boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+          }}
+        >
           <SentenceInput
             value={sentence}
             onChange={setSentence}
@@ -69,14 +79,25 @@ export default function Home() {
           />
         </div>
 
+        {!apiKey && (
+          <p className="text-[13px] mb-8" style={{ color: "var(--tertiary-label)" }}>
+            Add your Anthropic API key using the gear icon.
+          </p>
+        )}
+
+        {/* Error */}
         {error && (
-          <div className="rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 mb-6">
+          <div
+            className="rounded-xl text-[14px] px-4 py-3 mb-6"
+            style={{ background: "#FFF1F2", color: "#9F1239", border: "1px solid #FFE4E6" }}
+          >
             {error}
           </div>
         )}
 
+        {/* Results */}
         {result && (
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-3 mt-8">
             <TenseCard
               tense={result.original.tense}
               french={result.original.french}

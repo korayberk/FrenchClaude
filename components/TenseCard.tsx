@@ -5,42 +5,67 @@ interface TenseCardProps {
   highlight?: boolean;
 }
 
-const TENSE_COLORS: Record<string, string> = {
-  "Présent": "bg-emerald-100 text-emerald-800",
-  "Imparfait": "bg-amber-100 text-amber-800",
-  "Passé composé": "bg-orange-100 text-orange-800",
-  "Futur simple": "bg-sky-100 text-sky-800",
-  "Conditionnel présent": "bg-purple-100 text-purple-800",
-  "Passé simple": "bg-rose-100 text-rose-800",
-  "Plus-que-parfait": "bg-red-100 text-red-800",
+type BadgeStyle = { background: string; color: string };
+
+const TENSE_BADGES: Record<string, BadgeStyle> = {
+  "présent":               { background: "#E8F5E9", color: "#2E7D32" },
+  "imparfait":             { background: "#FFF3E0", color: "#BF360C" },
+  "passé composé":         { background: "#FCE4EC", color: "#880E4F" },
+  "futur simple":          { background: "#E3F2FD", color: "#0D47A1" },
+  "conditionnel":          { background: "#F3E5F5", color: "#4A148C" },
+  "passé simple":          { background: "#FBE9E7", color: "#BF360C" },
+  "plus-que-parfait":      { background: "#F9FBE7", color: "#558B2F" },
 };
 
-function badgeColor(tense: string) {
-  for (const key of Object.keys(TENSE_COLORS)) {
-    if (tense.toLowerCase().includes(key.toLowerCase())) return TENSE_COLORS[key];
+function badgeStyle(tense: string): BadgeStyle {
+  const lower = tense.toLowerCase();
+  for (const key of Object.keys(TENSE_BADGES)) {
+    if (lower.includes(key)) return TENSE_BADGES[key];
   }
-  return "bg-gray-100 text-gray-700";
+  return { background: "#F5F5F7", color: "#3A3A3C" };
 }
 
 export default function TenseCard({ tense, french, english, highlight }: TenseCardProps) {
+  const badge = badgeStyle(tense);
+
   return (
     <div
-      className={`rounded-2xl border p-5 flex flex-col gap-2 transition-shadow ${
-        highlight
-          ? "border-blue-300 bg-blue-50 shadow-md"
-          : "border-gray-200 bg-white hover:shadow-sm"
-      }`}
+      className="rounded-2xl px-5 py-4 flex flex-col gap-2"
+      style={{
+        background: highlight ? "#FAFAFA" : "var(--card)",
+        border: highlight ? "1.5px solid #D2D2D7" : "1px solid var(--separator)",
+        boxShadow: highlight
+          ? "0 2px 8px rgba(0,0,0,0.08)"
+          : "0 1px 3px rgba(0,0,0,0.05)",
+      }}
     >
       <div className="flex items-center gap-2">
-        <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${badgeColor(tense)}`}>
+        <span
+          className="text-[11px] font-semibold px-2.5 py-[3px] rounded-full tracking-wide uppercase"
+          style={badge}
+        >
           {tense}
         </span>
         {highlight && (
-          <span className="text-xs text-blue-500 font-medium">original</span>
+          <span className="text-[11px] font-medium" style={{ color: "var(--tertiary-label)" }}>
+            your sentence
+          </span>
         )}
       </div>
-      <p className="text-lg font-semibold text-gray-900 leading-snug">{french}</p>
-      <p className="text-sm text-gray-500 italic">{english}</p>
+
+      <p
+        className="text-[18px] font-medium leading-snug"
+        style={{ color: "var(--foreground)" }}
+      >
+        {french}
+      </p>
+
+      <p
+        className="text-[14px] leading-relaxed"
+        style={{ color: "var(--secondary-label)" }}
+      >
+        {english}
+      </p>
     </div>
   );
 }
