@@ -2,6 +2,7 @@ interface TenseCardProps {
   tense: string;
   french: string;
   english: string;
+  usage?: string;
   highlight?: boolean;
 }
 
@@ -25,7 +26,7 @@ function badgeStyle(tense: string): BadgeStyle {
   return { background: "#F5F5F7", color: "#3A3A3C" };
 }
 
-export default function TenseCard({ tense, french, english, highlight }: TenseCardProps) {
+export default function TenseCard({ tense, french, english, usage, highlight }: TenseCardProps) {
   const badge = badgeStyle(tense);
 
   return (
@@ -70,6 +71,18 @@ export default function TenseCard({ tense, french, english, highlight }: TenseCa
       >
         {english}
       </p>
+
+      {usage && (
+        <p
+          className="text-[12px] leading-relaxed pt-1"
+          style={{
+            color: highlight ? "rgba(255,255,255,0.4)" : "var(--tertiary-label)",
+            borderTop: highlight ? "1px solid rgba(255,255,255,0.12)" : "1px solid var(--separator)",
+          }}
+        >
+          {usage}
+        </p>
+      )}
     </div>
   );
 }

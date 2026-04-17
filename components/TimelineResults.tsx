@@ -6,6 +6,7 @@ interface TimelineItem {
   tense: string;
   french: string;
   english: string;
+  usage?: string;
   isOriginal: boolean;
   order: number;
   zone: string;
@@ -116,6 +117,7 @@ export default function TimelineResults({ result }: Props) {
                 tense={item.tense}
                 french={item.french}
                 english={item.english}
+                usage={item.usage}
                 highlight={item.isOriginal}
               />
             </div>

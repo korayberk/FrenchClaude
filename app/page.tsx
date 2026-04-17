@@ -5,6 +5,7 @@ import ApiKeyInput from "@/components/ApiKeyInput";
 import SentenceInput from "@/components/SentenceInput";
 import HistoryPanel from "@/components/HistoryPanel";
 import TimelineResults from "@/components/TimelineResults";
+import VerbWidget from "@/components/VerbWidget";
 import { ConjugateResponse } from "./api/conjugate/route";
 import {
   HistoryEntry,
@@ -155,8 +156,11 @@ export default function Home() {
           )}
 
           {result && (
-            <div className="mt-8">
+            <div className="mt-8 flex flex-col gap-6">
               <TimelineResults result={result} />
+              {result.verbs && result.verbs.length > 0 && (
+                <VerbWidget verbs={result.verbs} />
+              )}
             </div>
           )}
         </div>
