@@ -77,14 +77,28 @@ Réponds UNIQUEMENT avec du JSON valide, sans markdown, dans ce format exact :
 
   const message = await client.messages.create({
     model: "claude-sonnet-4-6",
-    max_tokens: 2048,
+    max_tokens: 4096,
     system: SYSTEM_PROMPT,
     messages: [{ role: "user", content: userPrompt }],
   });
 
+  if (message.stop_reason === "max_tokens") {
+    return NextResponse.json(
+      { error: "Response too long — try a shorter sentence." },
+      { status: 500 }
+    );
+  }
+
   const rawText =
     message.content[0].type === "text" ? message.content[0].text : "";
 
-  const data: ConjugateResponse = JSON.parse(rawText);
-  return NextResponse.json(data);
+  try {
+    const data: ConjugateResponse = JSON.parse(rawText);
+    return NextResponse.json(data);
+  } catch {
+    return NextResponse.json(
+      { error: "Could not parse response — please try again." },
+      { status: 500 }
+    );
+  }
 }
