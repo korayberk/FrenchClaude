@@ -138,17 +138,14 @@ export default function Home() {
           {inputCollapsed && result ? (
             <button
               onClick={() => setInputCollapsed(false)}
-              className="w-full flex items-center gap-3 rounded-2xl px-5 py-3.5 mb-6 text-left transition-colors"
+              className="w-full flex items-center gap-3 rounded-2xl px-5 py-3 mb-6 text-left"
               style={{
                 background: "var(--card)",
                 border: "1px solid var(--separator)",
                 boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
               }}
             >
-              <span
-                className="flex-1 text-[15px] truncate"
-                style={{ color: "var(--foreground)" }}
-              >
+              <span className="flex-1 text-[15px] truncate" style={{ color: "var(--foreground)" }}>
                 {sentence}
               </span>
               {correctedFrom && (
@@ -159,15 +156,12 @@ export default function Home() {
                   corrected
                 </span>
               )}
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="shrink-0 h-4 w-4"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                style={{ color: "var(--tertiary-label)" }}
+              <span
+                className="shrink-0 text-[12px] font-medium px-3 py-1 rounded-lg"
+                style={{ background: "var(--foreground)", color: "#fff" }}
               >
-                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-              </svg>
+                Edit
+              </span>
             </button>
           ) : (
             <>
