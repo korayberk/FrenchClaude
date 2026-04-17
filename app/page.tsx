@@ -136,9 +136,10 @@ export default function Home() {
 
           {/* Input — collapsed pill or full card */}
           {inputCollapsed && result ? (
+            <>
             <button
               onClick={() => setInputCollapsed(false)}
-              className="w-full flex items-center gap-3 rounded-2xl px-5 py-3 mb-6 text-left"
+              className="w-full flex items-center gap-3 rounded-2xl px-5 py-3 mb-1 text-left"
               style={{
                 background: "var(--card)",
                 border: "1px solid var(--separator)",
@@ -163,6 +164,12 @@ export default function Home() {
                 Edit
               </span>
             </button>
+            {result._usage && (
+              <p className="text-[11px] text-right mb-5" style={{ color: "var(--tertiary-label)" }}>
+                {result._usage.input.toLocaleString()} in · {result._usage.output.toLocaleString()} out · {(result._usage.input + result._usage.output).toLocaleString()} total tokens
+              </p>
+            )}
+            </>
           ) : (
             <>
               <div

@@ -19,6 +19,7 @@ export interface VerbConjugation {
 }
 
 export interface ConjugateResponse {
+  _usage?: { input: number; output: number };
   corrected_input?: string;
   original: {
     french: string;
@@ -99,7 +100,13 @@ Réponds UNIQUEMENT avec du JSON valide, sans markdown, dans ce format exact (re
 
   try {
     const data: ConjugateResponse = JSON.parse(jsonText);
-    return NextResponse.json(data);
+    return NextResponse.json({
+      ...data,
+      _usage: {
+        input: message.usage.input_tokens,
+        output: message.usage.output_tokens,
+      },
+    });
   } catch {
     return NextResponse.json(
       { error: "Could not parse response — please try again." },
