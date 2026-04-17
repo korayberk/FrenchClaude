@@ -31,45 +31,27 @@ export interface ConjugateResponse {
   verbs?: VerbConjugation[];
 }
 
-const SYSTEM_PROMPT = `Tu es un expert en langue française. Quand tu analyses des phrases françaises et génères des variations de temps verbaux, tu penses et raisonnes en français d'abord, puis tu traduis en anglais. Tu te concentres sur des temps simples et accessibles pour les apprenants.`;
+const SYSTEM_PROMPT = `Tu es un expert en langue française. Tu penses et raisonnes en français, puis traduis en anglais.`;
 
 export async function POST(req: NextRequest) {
   const { sentence, apiKey } = await req.json();
 
   if (!sentence || !apiKey) {
-    return NextResponse.json(
-      { error: "Missing sentence or API key" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Missing sentence or API key" }, { status: 400 });
   }
 
   const client = new Anthropic({ apiKey });
 
-  const userPrompt = `Voici une phrase en français (telle que saisie par l'utilisateur, potentiellement avec des fautes) : "${sentence}"
+  const userPrompt = `Voici une phrase en français (potentiellement avec des fautes) : "${sentence}"
 
-0. Corrige silencieusement toutes les fautes d'orthographe, d'accentuation et de ponctuation. Si tu as fait des corrections, retourne la phrase corrigée dans le champ "corrected_input". Si la phrase était déjà correcte, omet ce champ.
-1. Utilise la phrase corrigée pour tout ce qui suit. Identifie le temps de cette phrase (en français).
-2. Génère des variations dans TOUS les temps pertinents qui sont plus simples ou équivalents au temps original — couvre tout le spectre temporel accessible à un apprenant (passé lointain, passé, présent, futur, conditionnel). Ne limite pas le nombre : génère autant que cela a du sens grammaticalement. Évite le subjonctif.
-3. Pour l'original et chaque variation, fournis :
-   - la phrase en français
-   - sa traduction en anglais naturel
-   - une courte note d'usage en anglais (1 phrase concise)
-4. Identifie tous les verbes conjugués dans la phrase originale. Pour chaque verbe, fournis — à ces 4 temps : Présent, Imparfait, Passé composé, Futur simple — trois formes : la forme telle qu'elle apparaît dans la phrase (même personne/nombre), la forme il/elle, et la forme ils/elles.
+1. Corrige silencieusement les fautes d'orthographe, d'accentuation et de ponctuation. Si corrigé, retourne la phrase dans "corrected_input", sinon omet ce champ.
+2. Identifie le temps de la phrase corrigée.
+3. Génère des variations dans TOUS les temps pertinents plus simples ou équivalents — du passé lointain au conditionnel. Évite le subjonctif.
+4. Pour l'original et chaque variation : phrase en français, traduction anglaise naturelle, courte note d'usage en anglais (1 phrase).
 
-Réponds UNIQUEMENT avec du JSON valide, sans markdown, dans ce format exact (respecte cet ordre de champs) :
+Réponds UNIQUEMENT avec du JSON valide, sans markdown :
 {
   "corrected_input": "...",
-  "verbs": [
-    {
-      "verb": "infinitif",
-      "conjugations": [
-        { "tense": "Présent", "sentence_form": "...", "il_elle": "...", "ils_elles": "..." },
-        { "tense": "Imparfait", "sentence_form": "...", "il_elle": "...", "ils_elles": "..." },
-        { "tense": "Passé composé", "sentence_form": "...", "il_elle": "...", "ils_elles": "..." },
-        { "tense": "Futur simple", "sentence_form": "...", "il_elle": "...", "ils_elles": "..." }
-      ]
-    }
-  ],
   "original": { "french": "...", "tense": "...", "english": "...", "usage": "..." },
   "variations": [
     { "tense": "...", "french": "...", "english": "...", "usage": "..." }
@@ -78,39 +60,27 @@ Réponds UNIQUEMENT avec du JSON valide, sans markdown, dans ce format exact (re
 
   const message = await client.messages.create({
     model: "claude-sonnet-4-6",
-    max_tokens: 8192,
+    max_tokens: 4096,
     system: SYSTEM_PROMPT,
     messages: [{ role: "user", content: userPrompt }],
   });
 
   if (message.stop_reason === "max_tokens") {
-    return NextResponse.json(
-      { error: "Response too long — try a shorter sentence." },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Response too long — try a shorter sentence." }, { status: 500 });
   }
 
-  const rawText =
-    message.content[0].type === "text" ? message.content[0].text : "";
-
-  // Extract the JSON object regardless of markdown fences or preamble text
+  const rawText = message.content[0].type === "text" ? message.content[0].text : "";
   const start = rawText.indexOf("{");
   const end = rawText.lastIndexOf("}");
   const jsonText = start !== -1 && end !== -1 ? rawText.slice(start, end + 1) : rawText;
 
   try {
-    const data: ConjugateResponse = JSON.parse(jsonText);
+    const data = JSON.parse(jsonText);
     return NextResponse.json({
       ...data,
-      _usage: {
-        input: message.usage.input_tokens,
-        output: message.usage.output_tokens,
-      },
+      _usage: { input: message.usage.input_tokens, output: message.usage.output_tokens },
     });
   } catch {
-    return NextResponse.json(
-      { error: "Could not parse response — please try again." },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Could not parse response — please try again." }, { status: 500 });
   }
 }

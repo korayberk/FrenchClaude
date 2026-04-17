@@ -9,11 +9,17 @@ interface Slide {
 
 interface Props {
   slides: Slide[];
+  onSlideChange?: (index: number) => void;
 }
 
-export default function Carousel({ slides }: Props) {
+export default function Carousel({ slides, onSlideChange }: Props) {
   const [active, setActive] = useState(0);
   const startX = useRef<number | null>(null);
+
+  const goTo = (i: number) => {
+    setActive(i);
+    onSlideChange?.(i);
+  };
 
   const handleTouchStart = (e: React.TouchEvent) => {
     startX.current = e.touches[0].clientX;
@@ -23,23 +29,19 @@ export default function Carousel({ slides }: Props) {
     if (startX.current === null) return;
     const dx = e.changedTouches[0].clientX - startX.current;
     if (Math.abs(dx) > 50) {
-      if (dx < 0 && active < slides.length - 1) setActive(active + 1);
-      if (dx > 0 && active > 0) setActive(active - 1);
+      if (dx < 0 && active < slides.length - 1) goTo(active + 1);
+      if (dx > 0 && active > 0) goTo(active - 1);
     }
     startX.current = null;
   };
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Segmented control */}
-      <div
-        className="flex rounded-xl p-1 self-start"
-        style={{ background: "var(--separator)" }}
-      >
+      <div className="flex rounded-xl p-1 self-start" style={{ background: "var(--separator)" }}>
         {slides.map((s, i) => (
           <button
             key={s.label}
-            onClick={() => setActive(i)}
+            onClick={() => goTo(i)}
             className="px-4 py-1.5 rounded-lg text-[13px] font-medium transition-all"
             style={{
               background: active === i ? "var(--card)" : "transparent",
@@ -52,12 +54,7 @@ export default function Carousel({ slides }: Props) {
         ))}
       </div>
 
-      {/* Sliding window */}
-      <div
-        className="overflow-hidden"
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-      >
+      <div className="overflow-hidden" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
         <div
           className="flex"
           style={{
@@ -67,11 +64,7 @@ export default function Carousel({ slides }: Props) {
           }}
         >
           {slides.map((s, i) => (
-            <div
-              key={s.label}
-              style={{ width: `${100 / slides.length}%` }}
-              aria-hidden={i !== active}
-            >
+            <div key={s.label} style={{ width: `${100 / slides.length}%` }} aria-hidden={i !== active}>
               {s.content}
             </div>
           ))}
