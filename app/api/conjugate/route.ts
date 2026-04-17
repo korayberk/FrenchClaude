@@ -92,8 +92,13 @@ Réponds UNIQUEMENT avec du JSON valide, sans markdown, dans ce format exact :
   const rawText =
     message.content[0].type === "text" ? message.content[0].text : "";
 
+  // Extract the JSON object regardless of markdown fences or preamble text
+  const start = rawText.indexOf("{");
+  const end = rawText.lastIndexOf("}");
+  const jsonText = start !== -1 && end !== -1 ? rawText.slice(start, end + 1) : rawText;
+
   try {
-    const data: ConjugateResponse = JSON.parse(rawText);
+    const data: ConjugateResponse = JSON.parse(jsonText);
     return NextResponse.json(data);
   } catch {
     return NextResponse.json(
