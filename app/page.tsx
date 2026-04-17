@@ -25,6 +25,7 @@ export default function Home() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [correctedFrom, setCorrectedFrom] = useState<string | null>(null);
+  const [inputCollapsed, setInputCollapsed] = useState(false);
 
   const handleKeyChange = useCallback((key: string) => setApiKey(key), []);
 
@@ -35,6 +36,7 @@ export default function Home() {
     setResult(null);
     setSelectedId(null);
     setCorrectedFrom(null);
+    setInputCollapsed(false);
 
     try {
       const res = await fetch("/api/conjugate", {
@@ -68,6 +70,7 @@ export default function Home() {
       saveEntry(entry);
       setHistory(loadHistory());
       setSelectedId(entry.id);
+      setInputCollapsed(true);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Unknown error");
     } finally {
@@ -80,6 +83,8 @@ export default function Home() {
     setResult(entry.result);
     setSelectedId(entry.id);
     setError(null);
+    setCorrectedFrom(null);
+    setInputCollapsed(true);
   };
 
   const handleDelete = (id: string) => {
@@ -92,7 +97,6 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen" style={{ background: "var(--background)" }}>
-      {/* History sidebar */}
       <HistoryPanel
         entries={history}
         selectedId={selectedId}
@@ -102,14 +106,12 @@ export default function Home() {
         onClose={() => setHistoryOpen(false)}
       />
 
-      {/* Main content */}
       <main className="flex-1 flex flex-col items-center px-5 pt-16 pb-24 min-w-0">
         <div className="w-full max-w-[640px]">
 
           {/* Header */}
           <div className="flex items-start justify-between mb-10">
             <div className="flex items-center gap-3">
-              {/* Mobile history toggle */}
               <button
                 className="lg:hidden p-2 rounded-full"
                 style={{ color: "var(--secondary-label)" }}
@@ -132,41 +134,79 @@ export default function Home() {
             <ApiKeyInput onKeyChange={handleKeyChange} />
           </div>
 
-          {/* Input card */}
-          <div
-            className="rounded-2xl mb-3"
-            style={{
-              background: "var(--card)",
-              border: "1px solid var(--separator)",
-              boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
-            }}
-          >
-            <SentenceInput
-              value={sentence}
-              onChange={(v) => { setSentence(v); setCorrectedFrom(null); }}
-              onSubmit={handleSubmit}
-              loading={loading}
-              hasApiKey={!!apiKey}
-            />
-          </div>
-
-          {correctedFrom && (
-            <div
-              className="flex items-start gap-2 rounded-xl px-4 py-2.5 mb-3 text-[13px]"
-              style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", color: "#166534" }}
+          {/* Input — collapsed pill or full card */}
+          {inputCollapsed && result ? (
+            <button
+              onClick={() => setInputCollapsed(false)}
+              className="w-full flex items-center gap-3 rounded-2xl px-5 py-3.5 mb-6 text-left transition-colors"
+              style={{
+                background: "var(--card)",
+                border: "1px solid var(--separator)",
+                boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+              }}
             >
-              <span className="shrink-0 mt-px">✓</span>
-              <span>
-                <span className="font-medium">Corrected: </span>
-                <span style={{ opacity: 0.7 }}>&ldquo;{correctedFrom}&rdquo;</span>
+              <span
+                className="flex-1 text-[15px] truncate"
+                style={{ color: "var(--foreground)" }}
+              >
+                {sentence}
               </span>
-            </div>
-          )}
+              {correctedFrom && (
+                <span
+                  className="shrink-0 text-[11px] font-medium px-2 py-0.5 rounded-full"
+                  style={{ background: "#DCFCE7", color: "#166534" }}
+                >
+                  corrected
+                </span>
+              )}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="shrink-0 h-4 w-4"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                style={{ color: "var(--tertiary-label)" }}
+              >
+                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+              </svg>
+            </button>
+          ) : (
+            <>
+              <div
+                className="rounded-2xl mb-3"
+                style={{
+                  background: "var(--card)",
+                  border: "1px solid var(--separator)",
+                  boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+                }}
+              >
+                <SentenceInput
+                  value={sentence}
+                  onChange={(v) => { setSentence(v); setCorrectedFrom(null); }}
+                  onSubmit={handleSubmit}
+                  loading={loading}
+                  hasApiKey={!!apiKey}
+                />
+              </div>
 
-          {!apiKey && (
-            <p className="text-[13px] mb-8" style={{ color: "var(--tertiary-label)" }}>
-              Add your Anthropic API key using the gear icon.
-            </p>
+              {correctedFrom && (
+                <div
+                  className="flex items-start gap-2 rounded-xl px-4 py-2.5 mb-3 text-[13px]"
+                  style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", color: "#166534" }}
+                >
+                  <span className="shrink-0 mt-px">✓</span>
+                  <span>
+                    <span className="font-medium">Corrected: </span>
+                    <span style={{ opacity: 0.7 }}>&ldquo;{correctedFrom}&rdquo;</span>
+                  </span>
+                </div>
+              )}
+
+              {!apiKey && (
+                <p className="text-[13px] mb-8" style={{ color: "var(--tertiary-label)" }}>
+                  Add your Anthropic API key using the gear icon.
+                </p>
+              )}
+            </>
           )}
 
           {error && (
@@ -179,22 +219,20 @@ export default function Home() {
           )}
 
           {result && (
-            <div className="mt-8">
-              <Carousel
-                slides={[
-                  {
-                    label: "Sentences",
-                    content: <TimelineResults result={result} />,
-                  },
-                  {
-                    label: "Verbs",
-                    content: result.verbs && result.verbs.length > 0
-                      ? <VerbWidget verbs={result.verbs} />
-                      : <p className="text-[13px] py-4" style={{ color: "var(--tertiary-label)" }}>No verbs found.</p>,
-                  },
-                ]}
-              />
-            </div>
+            <Carousel
+              slides={[
+                {
+                  label: "Sentences",
+                  content: <TimelineResults result={result} />,
+                },
+                {
+                  label: "Verbs",
+                  content: result.verbs && result.verbs.length > 0
+                    ? <VerbWidget verbs={result.verbs} />
+                    : <p className="text-[13px] py-4" style={{ color: "var(--tertiary-label)" }}>No verbs found.</p>,
+                },
+              ]}
+            />
           )}
         </div>
       </main>
