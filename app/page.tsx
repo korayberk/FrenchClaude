@@ -93,8 +93,6 @@ export default function Home() {
         setCorrectedFrom(raw);
         setSentence(data.corrected_input);
       }
-      verbSentenceRef.current = final;
-
       const entry: HistoryEntry = {
         id: Date.now().toString(),
         sentence: final,
@@ -122,7 +120,7 @@ export default function Home() {
     setInputCollapsed(true);
     setVerbs(null);
     setVerbUsage(null);
-    verbSentenceRef.current = entry.sentence;
+    verbSentenceRef.current = "";
   };
 
   const handleDelete = (id: string) => {
