@@ -235,6 +235,18 @@ export default function Home() {
                 />
               </div>
 
+              {result && (
+                <div className="flex justify-end mb-1">
+                  <button
+                    onClick={() => setInputCollapsed(true)}
+                    className="text-[13px] px-3 py-1 rounded-lg"
+                    style={{ color: "var(--secondary-label)", background: "var(--separator)" }}
+                  >
+                    Collapse
+                  </button>
+                </div>
+              )}
+
               {correctedFrom && (
                 <div className="flex items-start gap-2 rounded-xl px-4 py-2.5 mb-3 text-[13px]"
                   style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", color: "#166534" }}>
