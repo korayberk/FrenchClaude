@@ -99,9 +99,17 @@
 
 ### Verbs Tab
 - Loading state: spinner + "Looking up conjugations…" (13px, `--tertiary-label`).
+- Controls (above the cards):
+  - "Most Used / All" segmented control, same style as the Sentences-tab toggle.
+  - "+N more tenses" hint (12px, `--tertiary-label`) when in Most Used mode.
 - Verbs are rendered two per card (singulier + pluriel columns for each verb). A trailing odd verb gets a single-verb card.
-- Card header: a CSS grid (`110px 1fr 1fr` for pair, `110px 1fr` for single) so each verb's italic infinitive label sits directly above its own conjugation columns. A vertical `--separator` divider falls between the two verbs.
-- Table: first column (110px) is the tense label (Présent / Imparfait / Passé composé / Futur simple) with a zone hint underneath. Remaining columns are `singulier` / `pluriel`, repeated for each verb.
+- Card header: a CSS grid that shares the same column template as the body table — `110px` gutter + two equal sub-cols per verb (so a pair uses `110px 1fr 1fr 1fr 1fr`). Each verb's header cell spans both of its sub-cols (`gridColumn: span 2`) and contains:
+  - Italic infinitive (15px, `--foreground`).
+  - English meaning next to it (12px, `--secondary-label`), e.g. "manger · to eat".
+  - "infinitif" hint (11px, `--tertiary-label`).
+  - Cache-status badge: "cached" (neutral) or "fresh" (blue-tinted `rgba(96,165,250,0.14)` / `#93C5FD`).
+- A vertical `--separator` divider falls between the two verb headers; because the header and body share a fixed column template (`tableLayout: fixed` + `<colgroup>` on the body table), that divider aligns exactly with the singulier/pluriel boundary below.
+- Table: first column (110px) is the tense label with a zone hint underneath. Tenses in Most Used mode: Présent, Imparfait, Passé composé, Futur simple. In All mode: adds Plus-que-parfait, Passé simple, Futur proche, Conditionnel (distant past → hypothetical order).
 - Each conjugation cell: two-column grid (pronoun label in `--tertiary-label`, conjugated form in `--foreground`), six pronouns (je, tu, il/elle, nous, vous, ils/elles).
 - Alternating tense rows are striped with `--surface`.
 - Token usage footer: same format as sentences token line.
@@ -109,7 +117,8 @@
 ### History Panel
 - `--surface` background, 1px `--separator` right border.
 - Sticky header: "History" title (13px semibold) + sort segmented control (Tense | New | Old, 11px).
-- Scrollable body (`overflow-y-auto`).
+- Scrollable body (`overflow-y-auto`, `min-h-0` so the footer stays pinned).
+- Pinned footer with a "Clear all history & cache" button (see below).
 
 #### Tense mode
 - Section headers: tense name (11px semibold uppercase, `--secondary-label`) + entry count badge.
@@ -128,6 +137,15 @@
 
 #### Empty state
 - Centered text: "Your sentences will appear here" (13px, `--tertiary-label`).
+
+#### Clear-all footer
+- Sits at the bottom of the panel, 1px `--separator` top border, `px-3 py-3`.
+- Idle state: single full-width button, transparent background, `--tertiary-label` text, `--separator` border, `rounded-lg` — "Clear all history & cache".
+- Confirmation state (after first click):
+  - Explainer line (11px, `--secondary-label`): "Delete all history and cached verb conjugations?"
+  - "Delete everything" button: red-tinted (`rgba(239,68,68,0.16)` bg, `#FCA5A5` text, `rgba(239,68,68,0.32)` border), half-width.
+  - "Cancel" button: `--separator` bg, `--secondary-label` text, half-width. Reverts to idle state.
+- Confirming the action clears localStorage for history and the verb cache; the panel re-renders to its empty state.
 
 ### Error Banner
 - `rounded-xl`, 14px, inline below input area.

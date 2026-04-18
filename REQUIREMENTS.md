@@ -23,16 +23,28 @@
 ## Verb Conjugation Table
 
 - Available as a second tab ("Verbs") in a carousel alongside the tense view.
-- Loaded lazily: API call only fires when the user first switches to the Verbs tab.
+- Loaded lazily: API call only fires when the user first switches to the Verbs tab for a given sentence.
 - Identifies every verb in the sentence, including:
   - Conjugated verbs (e.g. "mange" → manger).
   - Auxiliaries of compound tenses as separate entries (e.g. "je suis arrivé" yields être AND arriver).
   - Infinitives as separate entries (e.g. "j'aime nager" yields aimer AND nager).
-- For each verb, shows a full conjugation grid: 4 tenses × 6 pronouns.
-  - Tenses: Présent, Imparfait, Passé composé, Futur simple.
+- Infinitives are de-duplicated: the same verb appearing in multiple tenses within one sentence yields a single card.
+- For each verb, the API returns all 8 tenses in one call; the UI filters client-side.
+  - Default view "Most Used": Présent, Imparfait, Passé composé, Futur simple.
+  - Full view "All": adds Plus-que-parfait, Passé simple, Futur proche, Conditionnel (no subjonctif).
+  - Toggle via a "Most Used / All" segmented control; switching does NOT trigger a new API call.
+  - A hint shows how many additional tenses are hidden in Most Used mode.
   - Pronouns: je, tu, il/elle, nous, vous, ils/elles.
+- Verb card header shows the infinitive in italic plus its English meaning (e.g. "manger · to eat") and a cache-status badge (cached / fresh).
 - Verbs are grouped two per card (singulier + pluriel columns for each verb, with a shared tense-label column). A trailing odd verb uses a single-verb card.
 - Token usage for the verbs call is shown separately in the Verbs tab footer.
+
+### Verb cache
+
+- Verb conjugations are cached per-infinitive in localStorage (max 500 entries, FIFO-by-recency).
+- Key: `french_verb_cache_v2`. Each cached entry stores all 8 tenses plus the English meaning.
+- On verb lookup, cached infinitives are served immediately; only missing ones hit the API.
+- Cache badge on each verb card indicates source: "cached" (local) or "fresh" (just fetched).
 
 ## Input Behavior
 
@@ -57,8 +69,10 @@
   - Relative time (e.g., "2 days ago").
   - Tense badge (in New/Old modes).
 - Clicking a history entry instantly restores the sentence and its full result with no additional API call.
+  - Verb conjugations are re-resolved from the verb cache on tab switch (no sentence-level API call required).
 - Hovering an entry reveals a delete (×) button.
 - The active entry is highlighted in the panel.
+- A "Clear all history & cache" button in the panel footer wipes both the history and the verb cache after a two-click confirmation.
 
 ## Settings
 

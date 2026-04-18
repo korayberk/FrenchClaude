@@ -29,6 +29,11 @@ export function splitCached(
   return { hits, misses };
 }
 
+export function clearVerbCache(): void {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem(KEY);
+}
+
 export function saveVerbs(verbs: VerbConjugation[]): void {
   if (typeof window === "undefined" || verbs.length === 0) return;
   const cache = loadVerbCache();

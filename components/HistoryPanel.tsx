@@ -10,6 +10,7 @@ interface HistoryPanelProps {
   selectedId: string | null;
   onSelect: (entry: HistoryEntry) => void;
   onDelete: (id: string) => void;
+  onClearAll: () => void;
   open: boolean;
   onClose: () => void;
 }
@@ -19,11 +20,13 @@ export default function HistoryPanel({
   selectedId,
   onSelect,
   onDelete,
+  onClearAll,
   open,
   onClose,
 }: HistoryPanelProps) {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [mode, setMode] = useState<SortMode>("tense");
+  const [confirmingClear, setConfirmingClear] = useState(false);
 
   const toggleSection = (key: string) =>
     setCollapsed((c) => ({ ...c, [key]: !c[key] }));
@@ -90,7 +93,7 @@ export default function HistoryPanel({
       </div>
 
       {/* List */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto min-h-0">
         {entries.length === 0 ? (
           <p className="text-[13px] px-4 pt-6 text-center leading-relaxed" style={{ color: "var(--tertiary-label)" }}>
             Your sentences will appear here
@@ -127,6 +130,49 @@ export default function HistoryPanel({
               ))}
             </div>
           ))
+        )}
+      </div>
+
+      {/* Footer — clear everything */}
+      <div
+        className="shrink-0 px-3 py-3"
+        style={{ borderTop: "1px solid var(--separator)" }}
+      >
+        {confirmingClear ? (
+          <div className="flex flex-col gap-2">
+            <p className="text-[11px] leading-tight" style={{ color: "var(--secondary-label)" }}>
+              Delete all history and cached verb conjugations?
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => { onClearAll(); setConfirmingClear(false); }}
+                className="flex-1 text-[12px] font-medium py-1.5 rounded-lg"
+                style={{
+                  background: "rgba(239,68,68,0.16)",
+                  color: "#FCA5A5",
+                  border: "1px solid rgba(239,68,68,0.32)",
+                }}
+              >
+                Delete everything
+              </button>
+              <button
+                onClick={() => setConfirmingClear(false)}
+                className="flex-1 text-[12px] py-1.5 rounded-lg"
+                style={{ background: "var(--separator)", color: "var(--secondary-label)" }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button
+            onClick={() => setConfirmingClear(true)}
+            className="w-full text-[12px] py-1.5 rounded-lg transition-colors"
+            style={{ background: "transparent", color: "var(--tertiary-label)", border: "1px solid var(--separator)" }}
+            title="Delete all history and cached verb conjugations"
+          >
+            Clear all history & cache
+          </button>
         )}
       </div>
     </div>

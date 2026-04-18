@@ -73,6 +73,11 @@ export function deleteEntry(id: string): void {
   invalidate();
 }
 
+export function clearAllHistory(): void {
+  if (typeof window !== "undefined") localStorage.removeItem(KEY);
+  invalidate();
+}
+
 export function groupByTense(entries: HistoryEntry[]): Record<string, HistoryEntry[]> {
   const groups: Record<string, HistoryEntry[]> = {};
   for (const entry of entries) {

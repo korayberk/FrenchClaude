@@ -8,8 +8,8 @@ import TimelineResults from "@/components/TimelineResults";
 import VerbWidget, { VerbDisplay } from "@/components/VerbWidget";
 import Carousel from "@/components/Carousel";
 import { ConjugateResponse, VerbConjugation } from "./api/conjugate/route";
-import { HistoryEntry, useHistory, saveEntry, deleteEntry } from "@/lib/history";
-import { splitCached, saveVerbs } from "@/lib/verbCache";
+import { HistoryEntry, useHistory, saveEntry, deleteEntry, clearAllHistory } from "@/lib/history";
+import { splitCached, saveVerbs, clearVerbCache } from "@/lib/verbCache";
 import { ModelId, DEFAULT_MODEL } from "@/components/ApiKeyInput";
 
 const SETTINGS_EVENT = "french-settings-change";
@@ -212,6 +212,14 @@ export default function Home() {
     if (selectedId === id) setSelectedId(null);
   };
 
+  const handleClearAll = () => {
+    clearAllHistory();
+    clearVerbCache();
+    setSelectedId(null);
+    setVerbs(null);
+    verbSentenceRef.current = "";
+  };
+
   const verbsContent = verbsLoading ? (
     <div className="flex items-center gap-2 py-6 px-1" style={{ color: "var(--tertiary-label)" }}>
       <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -243,6 +251,7 @@ export default function Home() {
         selectedId={selectedId}
         onSelect={handleSelect}
         onDelete={handleDelete}
+        onClearAll={handleClearAll}
         open={historyOpen}
         onClose={() => setHistoryOpen(false)}
       />
