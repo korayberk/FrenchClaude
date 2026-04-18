@@ -3,20 +3,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { VerbConjugation } from "@/app/api/conjugate/route";
 
 export async function POST(req: NextRequest) {
-  const { sentence, apiKey, model = "claude-sonnet-4-6" } = await req.json();
+  const { infinitives, apiKey, model = "claude-sonnet-4-6" } = await req.json();
 
-  if (!sentence || !apiKey) {
-    return NextResponse.json({ error: "Missing sentence or API key" }, { status: 400 });
+  if (!apiKey) {
+    return NextResponse.json({ error: "Missing API key" }, { status: 400 });
+  }
+  if (!Array.isArray(infinitives) || infinitives.length === 0) {
+    return NextResponse.json({ verbs: [], _usage: { input: 0, output: 0 } });
   }
 
   const client = new Anthropic({ apiKey });
 
-  const userPrompt = `Voici une phrase en français : "${sentence}"
-
-Identifie TOUS les verbes présents dans la phrase, listés à l'infinitif. Inclut :
-- les verbes conjugués (ex. "mange" → manger) ;
-- les auxiliaires des temps composés comme verbes à part entière (ex. pour "je suis arrivé", liste être ET arriver séparément) ;
-- les infinitifs (ex. pour "j'aime nager", liste aimer ET nager séparément).
+  const userPrompt = `Conjugue les verbes français suivants : ${JSON.stringify(infinitives)}
 
 Pour chaque verbe, fournis la conjugaison complète (je, tu, il/elle, nous, vous, ils/elles) aux 4 temps suivants : Présent, Imparfait, Passé composé, Futur simple.
 
@@ -41,7 +39,7 @@ Réponds UNIQUEMENT avec du JSON valide, sans markdown :
   });
 
   if (message.stop_reason === "max_tokens") {
-    return NextResponse.json({ error: "Response truncated — try a shorter sentence." }, { status: 500 });
+    return NextResponse.json({ error: "Response truncated — try fewer verbs at once." }, { status: 500 });
   }
 
   const textBlock = message.content.find((b) => b.type === "text");

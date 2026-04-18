@@ -5,10 +5,11 @@ import ApiKeyInput from "@/components/ApiKeyInput";
 import SentenceInput from "@/components/SentenceInput";
 import HistoryPanel from "@/components/HistoryPanel";
 import TimelineResults from "@/components/TimelineResults";
-import VerbWidget from "@/components/VerbWidget";
+import VerbWidget, { VerbDisplay } from "@/components/VerbWidget";
 import Carousel from "@/components/Carousel";
 import { ConjugateResponse, VerbConjugation } from "./api/conjugate/route";
 import { HistoryEntry, loadHistory, saveEntry, deleteEntry } from "@/lib/history";
+import { splitCached, saveVerbs } from "@/lib/verbCache";
 import { ModelId, DEFAULT_MODEL } from "@/components/ApiKeyInput";
 
 export default function Home() {
@@ -24,9 +25,10 @@ export default function Home() {
   const [correctedFrom, setCorrectedFrom] = useState<string | null>(null);
   const [inputCollapsed, setInputCollapsed] = useState(false);
   const [model, setModel] = useState<ModelId>(DEFAULT_MODEL);
+  const [carouselIndex, setCarouselIndex] = useState(0);
 
   // Verbs — fetched lazily when user opens the Verbs tab
-  const [verbs, setVerbs] = useState<VerbConjugation[] | null>(null);
+  const [verbs, setVerbs] = useState<VerbDisplay[] | null>(null);
   const [verbsLoading, setVerbsLoading] = useState(false);
   const [verbsError, setVerbsError] = useState<string | null>(null);
   const [verbUsage, setVerbUsage] = useState<{ input: number; output: number } | null>(null);
@@ -40,19 +42,64 @@ export default function Home() {
     setVerbsLoading(true);
     setVerbsError(null);
     try {
-      const res = await fetch("/api/verbs", {
+      // Step 1: identify infinitives in the sentence.
+      const idRes = await fetch("/api/verb-infinitives", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sentence: sentenceToUse, apiKey: apiKeyToUse, model: modelToUse }),
       });
-      const data = await res.json();
-      if (data.error) {
-        setVerbsError(data.error);
+      const idData = await idRes.json();
+      if (idData.error) {
+        setVerbsError(idData.error);
         setVerbs([]);
-      } else {
-        setVerbs(data.verbs ?? []);
-        if (data._usage) setVerbUsage(data._usage);
+        return;
       }
+      const infinitives: string[] = idData.infinitives ?? [];
+      const idUsage = idData._usage ?? { input: 0, output: 0 };
+
+      // Step 2: diff against cache, fetch only missing conjugations.
+      const { hits, misses } = splitCached(infinitives);
+      let conjUsage = { input: 0, output: 0 };
+      let newVerbs: VerbConjugation[] = [];
+
+      if (misses.length > 0) {
+        const cjRes = await fetch("/api/verbs", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ infinitives: misses, apiKey: apiKeyToUse, model: modelToUse }),
+        });
+        const cjData = await cjRes.json();
+        if (cjData.error) {
+          setVerbsError(cjData.error);
+          setVerbs([]);
+          return;
+        }
+        newVerbs = cjData.verbs ?? [];
+        conjUsage = cjData._usage ?? { input: 0, output: 0 };
+        saveVerbs(newVerbs);
+      }
+
+      // Merge in the order Claude identified them, tagging each with its source.
+      const cacheMap = new Map<string, VerbConjugation>();
+      for (const v of hits) cacheMap.set(v.verb.toLowerCase(), v);
+      const freshMap = new Map<string, VerbConjugation>();
+      for (const v of newVerbs) freshMap.set(v.verb.toLowerCase(), v);
+      const ordered: VerbDisplay[] = infinitives
+        .map((inf): VerbDisplay | undefined => {
+          const key = inf.toLowerCase();
+          const cached = cacheMap.get(key);
+          if (cached) return { ...cached, _source: "cache" };
+          const fresh = freshMap.get(key);
+          if (fresh) return { ...fresh, _source: "cloud" };
+          return undefined;
+        })
+        .filter((v): v is VerbDisplay => v !== undefined);
+
+      setVerbs(ordered);
+      setVerbUsage({
+        input: idUsage.input + conjUsage.input,
+        output: idUsage.output + conjUsage.output,
+      });
     } catch (e) {
       setVerbsError(e instanceof Error ? e.message : "Unknown error");
       setVerbs([]);
@@ -61,13 +108,16 @@ export default function Home() {
     }
   }, []);
 
-  const handleSlideChange = useCallback((index: number) => {
-    if (index !== 1) return;                         // only Verbs tab (index 1)
-    if (verbs !== null) return;                      // already fetched
-    if (verbSentenceRef.current === sentence) return; // same sentence
+  // Fetch verbs whenever we're on the Verbs tab and have no data for the current sentence.
+  // Covers tab-switch, new submission, and history-entry selection.
+  useEffect(() => {
+    if (carouselIndex !== 1) return;
+    if (verbs !== null) return;
+    if (!sentence || !apiKey) return;
+    if (verbSentenceRef.current === sentence) return;
     verbSentenceRef.current = sentence;
     fetchVerbs(sentence, apiKey, model);
-  }, [verbs, sentence, apiKey, model, fetchVerbs]);
+  }, [carouselIndex, verbs, sentence, apiKey, model, fetchVerbs]);
 
   const handleSubmit = async () => {
     if (!sentence.trim() || !apiKey) return;
@@ -289,7 +339,7 @@ export default function Home() {
 
           {result && (
             <Carousel
-              onSlideChange={handleSlideChange}
+              onSlideChange={setCarouselIndex}
               slides={[
                 {
                   label: "Sentences",

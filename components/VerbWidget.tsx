@@ -1,6 +1,8 @@
 import { Fragment } from "react";
 import { VerbConjugation } from "@/app/api/conjugate/route";
 
+export type VerbDisplay = VerbConjugation & { _source: "cache" | "cloud" };
+
 const TENSES = ["Présent", "Imparfait", "Passé composé", "Futur simple"];
 
 const TENSE_ZONE: Record<string, string> = {
@@ -37,7 +39,24 @@ function chunkPairs<T>(arr: T[]): T[][] {
   return result;
 }
 
-function VerbCard({ pair }: { pair: VerbConjugation[] }) {
+function SourceBadge({ source }: { source: "cache" | "cloud" }) {
+  const cached = source === "cache";
+  return (
+    <span
+      className="text-[10px] font-medium uppercase tracking-wider px-1.5 py-px rounded"
+      style={
+        cached
+          ? { background: "rgba(255,255,255,0.06)", color: "var(--secondary-label)" }
+          : { background: "rgba(96,165,250,0.14)", color: "#93C5FD" }
+      }
+      title={cached ? "Loaded from local cache" : "Fetched from the API"}
+    >
+      {cached ? "cached" : "fresh"}
+    </span>
+  );
+}
+
+function VerbCard({ pair }: { pair: VerbDisplay[] }) {
   return (
     <div
       className="rounded-2xl overflow-hidden"
@@ -71,6 +90,7 @@ function VerbCard({ pair }: { pair: VerbConjugation[] }) {
             <span className="text-[11px]" style={{ color: "var(--tertiary-label)" }}>
               infinitif
             </span>
+            <SourceBadge source={v._source} />
           </div>
         ))}
       </div>
@@ -152,7 +172,7 @@ function VerbCard({ pair }: { pair: VerbConjugation[] }) {
 }
 
 interface Props {
-  verbs: VerbConjugation[];
+  verbs: VerbDisplay[];
 }
 
 export default function VerbWidget({ verbs }: Props) {
