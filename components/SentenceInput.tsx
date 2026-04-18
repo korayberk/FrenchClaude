@@ -52,7 +52,7 @@ export default function SentenceInput({
           className="flex items-center gap-2 text-[14px] font-medium px-5 py-2 rounded-xl transition-opacity"
           style={{
             background: disabled ? "var(--separator)" : "var(--foreground)",
-            color: disabled ? "var(--secondary-label)" : "#FFFFFF",
+            color: disabled ? "var(--secondary-label)" : "var(--background)",
             cursor: disabled ? "not-allowed" : "pointer",
           }}
         >

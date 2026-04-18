@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import ApiKeyInput from "@/components/ApiKeyInput";
 import SentenceInput from "@/components/SentenceInput";
 import HistoryPanel from "@/components/HistoryPanel";
@@ -17,7 +17,8 @@ export default function Home() {
   const [result, setResult] = useState<ConjugateResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [history, setHistory] = useState<HistoryEntry[]>(() => loadHistory());
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  useEffect(() => { setHistory(loadHistory()); }, []);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [correctedFrom, setCorrectedFrom] = useState<string | null>(null);
@@ -149,7 +150,7 @@ export default function Home() {
     </div>
   ) : verbsError ? (
     <div className="rounded-xl text-[14px] px-4 py-3"
-      style={{ background: "#FFF1F2", color: "#9F1239", border: "1px solid #FFE4E6" }}>
+      style={{ background: "rgba(239,68,68,0.12)", color: "#FCA5A5", border: "1px solid rgba(239,68,68,0.28)" }}>
       {verbsError}
     </div>
   ) : (
@@ -175,7 +176,7 @@ export default function Home() {
       />
 
       <main className="flex-1 flex flex-col items-center px-5 pt-16 pb-24 min-w-0">
-        <div className="w-full max-w-[640px]">
+        <div className="w-full max-w-[960px]">
 
           <div className="flex items-start justify-between mb-10">
             <div className="flex items-center gap-3">
@@ -217,12 +218,12 @@ export default function Home() {
                 </span>
                 {correctedFrom && (
                   <span className="shrink-0 text-[11px] font-medium px-2 py-0.5 rounded-full"
-                    style={{ background: "#DCFCE7", color: "#166534" }}>
+                    style={{ background: "rgba(34,197,94,0.16)", color: "#86EFAC" }}>
                     corrected
                   </span>
                 )}
                 <span className="shrink-0 text-[12px] font-medium px-3 py-1 rounded-lg"
-                  style={{ background: "var(--foreground)", color: "#fff" }}>
+                  style={{ background: "var(--foreground)", color: "var(--background)" }}>
                   Edit
                 </span>
               </button>
@@ -262,7 +263,7 @@ export default function Home() {
 
               {correctedFrom && (
                 <div className="flex items-start gap-2 rounded-xl px-4 py-2.5 mb-3 text-[13px]"
-                  style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", color: "#166534" }}>
+                  style={{ background: "rgba(34,197,94,0.10)", border: "1px solid rgba(34,197,94,0.28)", color: "#86EFAC" }}>
                   <span className="shrink-0 mt-px">✓</span>
                   <span>
                     <span className="font-medium">Corrected: </span>
@@ -281,7 +282,7 @@ export default function Home() {
 
           {error && (
             <div className="rounded-xl text-[14px] px-4 py-3 mb-6"
-              style={{ background: "#FFF1F2", color: "#9F1239", border: "1px solid #FFE4E6" }}>
+              style={{ background: "rgba(239,68,68,0.12)", color: "#FCA5A5", border: "1px solid rgba(239,68,68,0.28)" }}>
               {error}
             </div>
           )}

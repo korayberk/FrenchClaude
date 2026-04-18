@@ -53,7 +53,7 @@ export default function ApiKeyInput({ onKeyChange, onModelChange }: ApiKeyInputP
 
       {open && (
         <div className="absolute right-0 top-10 z-10 w-[300px] rounded-2xl p-5 flex flex-col gap-4"
-          style={{ background: "var(--card)", border: "1px solid var(--separator)", boxShadow: "0 8px 32px rgba(0,0,0,0.12)" }}>
+          style={{ background: "var(--card)", border: "1px solid var(--separator)", boxShadow: "0 12px 40px rgba(0,0,0,0.6)" }}>
 
           {/* API Key */}
           <div className="flex flex-col gap-2">
@@ -87,11 +87,11 @@ export default function ApiKeyInput({ onKeyChange, onModelChange }: ApiKeyInputP
                   }}
                 >
                   <span className="text-[13px] font-medium"
-                    style={{ color: model === m.id ? "#fff" : "var(--foreground)" }}>
+                    style={{ color: model === m.id ? "var(--background)" : "var(--foreground)" }}>
                     {m.label}
                   </span>
                   <span className="text-[11px]"
-                    style={{ color: model === m.id ? "rgba(255,255,255,0.6)" : "var(--tertiary-label)" }}>
+                    style={{ color: model === m.id ? "rgba(13,13,15,0.6)" : "var(--tertiary-label)" }}>
                     {m.note}
                   </span>
                 </button>

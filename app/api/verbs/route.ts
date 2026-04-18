@@ -13,17 +13,22 @@ export async function POST(req: NextRequest) {
 
   const userPrompt = `Voici une phrase en français : "${sentence}"
 
-Identifie tous les verbes conjugués. Pour chacun, fournis sa conjugaison à la même personne/nombre que dans la phrase, plus il/elle et ils/elles, aux 4 temps suivants : Présent, Imparfait, Passé composé, Futur simple.
+Identifie TOUS les verbes présents dans la phrase, listés à l'infinitif. Inclut :
+- les verbes conjugués (ex. "mange" → manger) ;
+- les auxiliaires des temps composés comme verbes à part entière (ex. pour "je suis arrivé", liste être ET arriver séparément) ;
+- les infinitifs (ex. pour "j'aime nager", liste aimer ET nager séparément).
+
+Pour chaque verbe, fournis la conjugaison complète (je, tu, il/elle, nous, vous, ils/elles) aux 4 temps suivants : Présent, Imparfait, Passé composé, Futur simple.
 
 Réponds UNIQUEMENT avec du JSON valide, sans markdown :
 [
   {
     "verb": "infinitif",
     "conjugations": [
-      { "tense": "Présent", "sentence_form": "...", "il_elle": "...", "ils_elles": "..." },
-      { "tense": "Imparfait", "sentence_form": "...", "il_elle": "...", "ils_elles": "..." },
-      { "tense": "Passé composé", "sentence_form": "...", "il_elle": "...", "ils_elles": "..." },
-      { "tense": "Futur simple", "sentence_form": "...", "il_elle": "...", "ils_elles": "..." }
+      { "tense": "Présent", "je": "...", "tu": "...", "il_elle": "...", "nous": "...", "vous": "...", "ils_elles": "..." },
+      { "tense": "Imparfait", "je": "...", "tu": "...", "il_elle": "...", "nous": "...", "vous": "...", "ils_elles": "..." },
+      { "tense": "Passé composé", "je": "...", "tu": "...", "il_elle": "...", "nous": "...", "vous": "...", "ils_elles": "..." },
+      { "tense": "Futur simple", "je": "...", "tu": "...", "il_elle": "...", "nous": "...", "vous": "...", "ils_elles": "..." }
     ]
   }
 ]`;
@@ -39,10 +44,20 @@ Réponds UNIQUEMENT avec du JSON valide, sans markdown :
     return NextResponse.json({ error: "Response truncated — try a shorter sentence." }, { status: 500 });
   }
 
-  const rawText = message.content[0].type === "text" ? message.content[0].text : "";
+  const textBlock = message.content.find((b) => b.type === "text");
+  const rawText = textBlock && textBlock.type === "text" ? textBlock.text : "";
+
+  if (!rawText) {
+    return NextResponse.json({ error: "No text response from model — please try again." }, { status: 500 });
+  }
+
   const start = rawText.indexOf("[");
   const end = rawText.lastIndexOf("]");
-  const jsonText = start !== -1 && end !== -1 ? rawText.slice(start, end + 1) : "[]";
+  const jsonText = start !== -1 && end !== -1 ? rawText.slice(start, end + 1) : "";
+
+  if (!jsonText) {
+    return NextResponse.json({ error: "Could not parse verb response — please try again." }, { status: 500 });
+  }
 
   try {
     const verbs: VerbConjugation[] = JSON.parse(jsonText);

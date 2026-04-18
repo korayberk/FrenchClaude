@@ -119,12 +119,12 @@ export default function TimelineResults({ result }: Props) {
                     className="shrink-0 flex items-center justify-center rounded-full"
                     style={{ width: 18, height: 18, border: "2px solid var(--foreground)", background: "var(--foreground)" }}
                   >
-                    <div style={{ width: 6, height: 6, borderRadius: "50%", background: "white" }} />
+                    <div style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--background)" }} />
                   </div>
                 ) : (
                   <div
                     className="shrink-0 rounded-full"
-                    style={{ width: 10, height: 10, border: "1.5px solid #C7C7CC", background: "var(--background)" }}
+                    style={{ width: 10, height: 10, border: "1.5px solid var(--tertiary-label)", background: "var(--background)" }}
                   />
                 )}
 

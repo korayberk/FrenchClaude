@@ -58,7 +58,7 @@ export default function Carousel({ slides, onSlideChange }: Props) {
         <div
           className="flex"
           style={{
-            transform: `translateX(${-active * 100}%)`,
+            transform: `translateX(${-active * (100 / slides.length)}%)`,
             transition: "transform 0.32s cubic-bezier(0.4, 0, 0.2, 1)",
             width: `${slides.length * 100}%`,
           }}

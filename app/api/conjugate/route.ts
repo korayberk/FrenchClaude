@@ -12,8 +12,11 @@ export interface VerbConjugation {
   verb: string;
   conjugations: {
     tense: string;
-    sentence_form: string;
+    je: string;
+    tu: string;
     il_elle: string;
+    nous: string;
+    vous: string;
     ils_elles: string;
   }[];
 }
@@ -69,7 +72,8 @@ Réponds UNIQUEMENT avec du JSON valide, sans markdown :
     return NextResponse.json({ error: "Response too long — try a shorter sentence." }, { status: 500 });
   }
 
-  const rawText = message.content[0].type === "text" ? message.content[0].text : "";
+  const textBlock = message.content.find((b) => b.type === "text");
+  const rawText = textBlock && textBlock.type === "text" ? textBlock.text : "";
   const start = rawText.indexOf("{");
   const end = rawText.lastIndexOf("}");
   const jsonText = start !== -1 && end !== -1 ? rawText.slice(start, end + 1) : rawText;

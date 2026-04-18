@@ -9,13 +9,13 @@ interface TenseCardProps {
 type BadgeStyle = { background: string; color: string };
 
 const TENSE_BADGES: Record<string, BadgeStyle> = {
-  "présent":               { background: "#E8F5E9", color: "#2E7D32" },
-  "imparfait":             { background: "#FFF3E0", color: "#BF360C" },
-  "passé composé":         { background: "#FCE4EC", color: "#880E4F" },
-  "futur simple":          { background: "#E3F2FD", color: "#0D47A1" },
-  "conditionnel":          { background: "#F3E5F5", color: "#4A148C" },
-  "passé simple":          { background: "#FBE9E7", color: "#BF360C" },
-  "plus-que-parfait":      { background: "#F9FBE7", color: "#558B2F" },
+  "présent":               { background: "rgba(52,211,153,0.14)",  color: "#6EE7B7" },
+  "imparfait":             { background: "rgba(251,146,60,0.14)",  color: "#FDBA74" },
+  "passé composé":         { background: "rgba(244,114,182,0.14)", color: "#F9A8D4" },
+  "futur simple":          { background: "rgba(96,165,250,0.14)",  color: "#93C5FD" },
+  "conditionnel":          { background: "rgba(167,139,250,0.14)", color: "#C4B5FD" },
+  "passé simple":          { background: "rgba(248,113,113,0.14)", color: "#FCA5A5" },
+  "plus-que-parfait":      { background: "rgba(190,242,100,0.14)", color: "#D9F99D" },
 };
 
 function badgeStyle(tense: string): BadgeStyle {
@@ -23,7 +23,7 @@ function badgeStyle(tense: string): BadgeStyle {
   for (const key of Object.keys(TENSE_BADGES)) {
     if (lower.includes(key)) return TENSE_BADGES[key];
   }
-  return { background: "#F5F5F7", color: "#3A3A3C" };
+  return { background: "rgba(255,255,255,0.06)", color: "#A8A8AE" };
 }
 
 export default function TenseCard({ tense, french, english, usage, highlight }: TenseCardProps) {
@@ -31,58 +31,41 @@ export default function TenseCard({ tense, french, english, usage, highlight }: 
 
   return (
     <div
-      className="rounded-2xl px-5 py-4 flex flex-col gap-2"
+      className="rounded-2xl px-5 py-3 flex items-start gap-4"
+      title={usage}
       style={{
         background: highlight ? "var(--foreground)" : "var(--card)",
         border: highlight ? "1.5px solid var(--foreground)" : "1px solid var(--separator)",
         boxShadow: highlight
-          ? "0 4px 16px rgba(0,0,0,0.18)"
-          : "0 1px 3px rgba(0,0,0,0.05)",
+          ? "0 4px 20px rgba(0,0,0,0.45)"
+          : "0 1px 2px rgba(0,0,0,0.3)",
       }}
     >
-      <div className="flex items-center gap-2">
-        <span
-          className="text-[11px] font-semibold px-2.5 py-[3px] rounded-full tracking-wide uppercase"
-          style={
-            highlight
-              ? { background: "rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.85)" }
-              : badge
-          }
-        >
-          {tense}
-        </span>
-        {highlight && (
-          <span className="text-[11px] font-medium" style={{ color: "rgba(255,255,255,0.5)" }}>
-            your sentence
-          </span>
-        )}
-      </div>
-
-      <p
-        className="text-[18px] font-medium leading-snug"
-        style={{ color: highlight ? "#FFFFFF" : "var(--foreground)" }}
+      <span
+        className="shrink-0 mt-1 text-[11px] font-semibold px-2.5 py-[3px] rounded-full tracking-wide uppercase"
+        style={
+          highlight
+            ? { background: "rgba(13,13,15,0.12)", color: "rgba(13,13,15,0.8)" }
+            : badge
+        }
       >
-        {french}
-      </p>
+        {tense}
+      </span>
 
-      <p
-        className="text-[14px] leading-relaxed"
-        style={{ color: highlight ? "rgba(255,255,255,0.65)" : "var(--secondary-label)" }}
-      >
-        {english}
-      </p>
-
-      {usage && (
+      <div className="flex-1 min-w-0 flex flex-col gap-0.5">
         <p
-          className="text-[12px] leading-relaxed pt-1"
-          style={{
-            color: highlight ? "rgba(255,255,255,0.55)" : "var(--secondary-label)",
-            borderTop: highlight ? "1px solid rgba(255,255,255,0.12)" : "1px solid var(--separator)",
-          }}
+          className="text-[17px] font-medium leading-snug"
+          style={{ color: highlight ? "var(--background)" : "var(--foreground)" }}
         >
-          {usage}
+          {french}
         </p>
-      )}
+        <p
+          className="text-[13px] leading-snug"
+          style={{ color: highlight ? "rgba(13,13,15,0.68)" : "var(--secondary-label)" }}
+        >
+          {english}
+        </p>
+      </div>
     </div>
   );
 }
