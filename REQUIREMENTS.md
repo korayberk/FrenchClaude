@@ -24,12 +24,14 @@
 
 - Available as a second tab ("Verbs") in a carousel alongside the tense view.
 - Loaded lazily: API call only fires when the user first switches to the Verbs tab.
-- Identifies all conjugated verbs in the sentence.
-- For each verb, shows a table with 4 tenses × 3 forms:
-  - Sentence form (same person/number as the input sentence)
-  - il/elle form
-  - ils/elles form
-- The 4 tenses shown: Présent, Imparfait, Passé composé, Futur simple.
+- Identifies every verb in the sentence, including:
+  - Conjugated verbs (e.g. "mange" → manger).
+  - Auxiliaries of compound tenses as separate entries (e.g. "je suis arrivé" yields être AND arriver).
+  - Infinitives as separate entries (e.g. "j'aime nager" yields aimer AND nager).
+- For each verb, shows a full conjugation grid: 4 tenses × 6 pronouns.
+  - Tenses: Présent, Imparfait, Passé composé, Futur simple.
+  - Pronouns: je, tu, il/elle, nous, vous, ils/elles.
+- Verbs are grouped two per card (singulier + pluriel columns for each verb, with a shared tense-label column). A trailing odd verb uses a single-verb card.
 - Token usage for the verbs call is shown separately in the Verbs tab footer.
 
 ## Input Behavior
@@ -38,6 +40,7 @@
 - Submit fires on button click or Cmd/Ctrl+Enter.
 - After a successful conjugation, the input area collapses to a single-line pill showing the sentence.
 - The pill includes an "Edit" button to re-expand the input area.
+- When the input is manually re-expanded (post-submit), a "Collapse" button is shown to dismiss it again without re-submitting.
 - A "Corrected" badge appears on the pill if the sentence was auto-corrected.
 - Token usage for the conjugation call is shown under the collapsed pill.
 
@@ -69,12 +72,12 @@
 
 ## Layout
 
-- Desktop (≥ lg breakpoint): two-column layout — fixed-width history sidebar (256 px) + scrollable main content.
+- Desktop (≥ lg breakpoint): two-column layout — fixed-width history sidebar (256 px) + scrollable main content (max 960 px).
 - Mobile (< lg): history panel hidden by default; a clock icon in the header opens it as a slide-over overlay.
 
 ## Error Handling
 
 - Missing sentence or API key: 400 error surfaced as inline message.
 - Claude response too long (max_tokens exceeded): user-friendly error message.
-- Unparseable JSON from Claude: user-friendly retry message.
+- Empty or unparseable JSON from Claude: user-friendly retry message.
 - Network/fetch errors: error message shown inline.

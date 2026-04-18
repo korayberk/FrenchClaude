@@ -2,16 +2,19 @@
 
 ## Design Language
 
-- Apple-inspired aesthetic: clean whites, soft grays, generous spacing, rounded corners.
-- Color palette via CSS custom properties:
-  - `--background`: `#F5F5F7` — page background
-  - `--foreground`: `#1D1D1F` — primary text, dark buttons
-  - `--secondary-label`: `#6E6E73` — secondary text, usage notes
-  - `--tertiary-label`: `#AEAEB2` — timestamps, token counts
-  - `--separator`: `#D2D2D7` — borders, dividers
-  - `--card`: `#FFFFFF` — card surfaces
+- Dark, minimalistic aesthetic: near-black surfaces, off-white text, generous spacing, rounded corners. Single-theme (no light mode).
+- Color palette via CSS custom properties (defined in `app/globals.css`):
+  - `--background`: `#0D0D0F` — page background
+  - `--foreground`: `#F2F2F5` — primary text, inverted-surface buttons
+  - `--secondary-label`: `#A8A8AE` — secondary text
+  - `--tertiary-label`: `#75757B` — timestamps, token counts, placeholders
+  - `--separator`: `#2A2A2E` — borders, dividers
+  - `--card`: `#17171A` — card surfaces
+  - `--surface`: `#121214` — sidebar background, table-row striping
+  - `--card-hover`: `#222226` — row hover state
 - Typography: system font stack (Geist / SF Pro fallback), no custom font overrides.
-- No drop shadows heavier than `0 1px 4px rgba(0,0,0,0.06)` on cards; `0 8px 32px rgba(0,0,0,0.12)` on floating panels.
+- Shadows: `0 1px 2px rgba(0,0,0,0.3)` on cards; `0 4px 20px rgba(0,0,0,0.45)` on the highlighted card; `0 12px 40px rgba(0,0,0,0.6)` on floating panels.
+- Inverted surfaces (Conjugate button, Edit pill, highlighted TenseCard, selected model row) use `var(--foreground)` background paired with `var(--background)` text, so the inversion stays token-driven.
 
 ## Layout
 
@@ -19,7 +22,7 @@
 ```
 ┌──────────────────┬──────────────────────────────────┐
 │  History Panel   │          Main Content             │
-│  256px fixed     │  flex-1, max-w-640px, centered    │
+│  256px fixed     │  flex-1, max-w-960px, centered    │
 │                  │                                   │
 │  [sort tabs]     │  Header: title + gear icon        │
 │  ─────────────   │  Input area (or collapsed pill)   │
@@ -30,37 +33,38 @@
 ```
 
 ### Mobile (< lg)
-- History panel hidden; clock icon in header opens it as a full-height slide-over with backdrop.
+- History panel hidden; clock icon in header opens it as a full-height slide-over with a dimmed backdrop (`rgba(0,0,0,0.6)`).
 - Main content spans full width with horizontal padding `px-5`.
 
 ## Components
 
 ### Header
-- Left: clock icon (mobile only) + app title "French Tenses" (28px semibold) + subtitle "Type a sentence in French — see it across tenses" (15px, secondary-label).
-- Right: gear icon button (18px, secondary-label) that opens the Settings panel.
+- Left: clock icon (mobile only) + app title "French Tenses" (28px semibold) + subtitle "Type a sentence in French — see it across tenses" (15px, `--secondary-label`).
+- Right: gear icon button (18px, `--secondary-label`) that opens the Settings panel.
 
 ### Settings Panel (floating, 300px wide)
 - Positioned top-right relative to gear icon.
-- Sections: API Key (password input) + Model picker (segmented list of 3 options).
-- Active model: dark background (`--foreground`) + white text.
-- Inactive model: `--background` + `--foreground` text.
+- Sections: API Key (password input) + Model picker (stacked list of 3 options).
+- Active model: `--foreground` background + `--background` text.
+- Inactive model: `--background` surface with `--foreground` text.
 - Save / Cancel buttons, right-aligned.
 
 ### Input Area (expanded state)
-- White card (`--card`), 1px separator border, subtle shadow, `rounded-2xl`.
-- Multi-line textarea, 15px, `--foreground` text.
-- Placeholder: `#AEAEB2` (`--tertiary-label`).
-- "Conjugate" submit button: dark pill (`--foreground` background, white text), disabled when no API key.
-- "Corrected" banner below card (if auto-corrected): green-tinted (`#F0FDF4` bg, `#166534` text, `#BBF7D0` border), check mark icon.
+- Card (`--card`), 1px `--separator` border, subtle shadow, `rounded-2xl`.
+- Multi-line textarea, 17px, `--foreground` text, transparent background.
+- Placeholder: `--tertiary-label`.
+- "Conjugate" submit button: `--foreground` pill with `--background` text; when disabled, `--separator` background + `--secondary-label` text.
+- After a result exists, a "Collapse" pill appears beneath the card (right-aligned, `--separator` background, `--secondary-label` text).
+- "Corrected" banner below card (if auto-corrected): green-tinted (`rgba(34,197,94,0.10)` bg, `#86EFAC` text, `rgba(34,197,94,0.28)` border), check mark icon.
 
 ### Input Area (collapsed state)
-- Single-line pill: white card, full-width, sentence text (15px) + "Edit" badge (dark background, white text, `rounded-lg`).
-- "corrected" badge (green pill) shown between sentence and Edit button when corrected.
-- Token usage line below pill: 11px, tertiary-label, right-aligned. Format: `N in · M out · T total tokens`.
+- Single-line pill: card surface, full-width, sentence text (15px) + "Edit" badge (`--foreground` bg, `--background` text, `rounded-lg`).
+- "corrected" badge (green pill: `rgba(34,197,94,0.16)` bg, `#86EFAC` text) shown between sentence and Edit button when corrected.
+- Token usage line below pill: 11px, `--tertiary-label`, right-aligned. Format: `N in · M out · T total tokens`.
 
 ### Carousel
 - Segmented control (`--separator` background, `rounded-xl`), self-start (left-aligned).
-- Active tab: `--card` background + shadow; inactive: transparent + secondary-label text.
+- Active tab: `--card` background + shadow; inactive: transparent + `--secondary-label` text.
 - Slide transition: CSS `translateX`, `0.32s cubic-bezier(0.4, 0, 0.2, 1)`.
 - Touch swipe: 50px threshold to advance slide.
 
@@ -68,65 +72,80 @@
 
 #### Controls
 - "Most Used / All" segmented control, same style as Carousel tabs.
-- "+N more tenses" hint (13px, tertiary-label) when in Most Used mode.
+- "+N more tenses" hint (12px, `--tertiary-label`) when in Most Used mode.
 
 #### Timeline layout
-- Single vertical line (2px, `--separator`) running through all entries.
-- Zone labels left of the line (uppercase, 10px, tertiary-label, letter-spacing 0.05em): DISTANT PAST / NEAR PAST / PRESENT / NEAR FUTURE / FUTURE.
-- Original entry: 18px filled dark dot (`--foreground`) with 6px white center; dark card (`--foreground` background, white text).
-- Variation entries: 10px open gray circle; white card (`--card`), `--foreground` text, 13px usage note in secondary-label below translation.
+- Single 1px vertical line (`--separator`) running through all entries.
+- Zone labels left of the line: 10px uppercase, `--tertiary-label` (variation) / `--secondary-label` semibold (original).
+- Original entry: 18px filled dot (`--foreground`) with a 6px `--background` center; inverted card (`--foreground` bg, `--background` text).
+- Variation entries: 10px open circle bordered in `--tertiary-label`; standard card (`--card` bg).
 
-#### Card anatomy
-- Tense label: 11px uppercase, tertiary-label (white/60 on dark card).
-- French sentence: 17px semibold.
-- English translation: 15px.
-- Usage note: 13px, secondary-label (white/70 on dark card).
+#### Card anatomy (single-row layout)
+- Horizontal card: `[chip] → [french stacked over english]`.
+- Tense chip: 11px uppercase, tinted accent per tense (see below). On the highlighted card, chip uses `rgba(13,13,15,0.12)` bg + `rgba(13,13,15,0.8)` text.
+- French sentence: 17px medium.
+- English translation: 13px, `--secondary-label` (or `rgba(13,13,15,0.68)` on the highlighted card).
+- Usage note: not shown on the card; surfaced as a native browser tooltip via the card's `title` attribute.
+
+#### Tense accent chips (dark-saturated bg + bright text)
+- Présent: `rgba(52,211,153,0.14)` / `#6EE7B7`
+- Imparfait: `rgba(251,146,60,0.14)` / `#FDBA74`
+- Passé composé: `rgba(244,114,182,0.14)` / `#F9A8D4`
+- Futur simple: `rgba(96,165,250,0.14)` / `#93C5FD`
+- Conditionnel: `rgba(167,139,250,0.14)` / `#C4B5FD`
+- Passé simple: `rgba(248,113,113,0.14)` / `#FCA5A5`
+- Plus-que-parfait: `rgba(190,242,100,0.14)` / `#D9F99D`
+- Fallback: `rgba(255,255,255,0.06)` / `#A8A8AE`
 
 ### Verbs Tab
-- Loading state: spinner + "Looking up conjugations…" (13px, tertiary-label).
-- Per-verb card: italic infinitive header (15px semibold) + table.
-- Table columns: sentence form | il/elle | ils/elles.
-- Table rows: 4 tenses, each with a left zone-label badge.
+- Loading state: spinner + "Looking up conjugations…" (13px, `--tertiary-label`).
+- Verbs are rendered two per card (singulier + pluriel columns for each verb). A trailing odd verb gets a single-verb card.
+- Card header: a CSS grid (`110px 1fr 1fr` for pair, `110px 1fr` for single) so each verb's italic infinitive label sits directly above its own conjugation columns. A vertical `--separator` divider falls between the two verbs.
+- Table: first column (110px) is the tense label (Présent / Imparfait / Passé composé / Futur simple) with a zone hint underneath. Remaining columns are `singulier` / `pluriel`, repeated for each verb.
+- Each conjugation cell: two-column grid (pronoun label in `--tertiary-label`, conjugated form in `--foreground`), six pronouns (je, tu, il/elle, nous, vous, ils/elles).
+- Alternating tense rows are striped with `--surface`.
 - Token usage footer: same format as sentences token line.
 
 ### History Panel
-- White background (`--card`), left border (`1px solid var(--separator)`).
-- Sticky header: "History" title (15px semibold) + sort segmented control (Tense | New | Old, 12px).
+- `--surface` background, 1px `--separator` right border.
+- Sticky header: "History" title (13px semibold) + sort segmented control (Tense | New | Old, 11px).
 - Scrollable body (`overflow-y-auto`).
 
 #### Tense mode
-- Section headers: tense name (12px semibold, secondary-label) + entry count badge.
+- Section headers: tense name (11px semibold uppercase, `--secondary-label`) + entry count badge.
 - Collapse/expand toggle per section (chevron icon).
 
 #### Date modes (New / Old)
-- Section headers: day label (Today / Yesterday / Jan 15, 2026) — 11px uppercase, tertiary-label.
+- Section headers: day label (Today / Yesterday / Jan 15, 2026) — 11px uppercase, `--secondary-label`.
 
 #### Entry row
-- Full-width button, `px-3 py-2`, `rounded-xl`.
+- Full-width row, `px-3 py-2.5`.
 - Selected: `--separator` background.
-- Hover: `--separator` background (0.5 opacity transition).
-- Sentence text: 13px, foreground, truncated to 1 line.
-- Meta line: relative time (11px, tertiary-label) + tense badge (in date modes).
-- Delete button (×): appears on hover, right-aligned, 12px, secondary-label.
+- Hover: `--card-hover` background.
+- Sentence text: 13px, `--foreground`, truncated to 1 line.
+- Meta line: relative time (11px, `--tertiary-label`) + tense badge (in date modes).
+- Delete button (×): appears on hover, right-aligned, 14px, `--tertiary-label`.
 
 #### Empty state
-- Centered text: "Your sentences will appear here" (13px, tertiary-label).
+- Centered text: "Your sentences will appear here" (13px, `--tertiary-label`).
 
 ### Error Banner
 - `rounded-xl`, 14px, inline below input area.
-- Colors: `#FFF1F2` background, `#9F1239` text, `#FFE4E6` border.
+- Colors: `rgba(239,68,68,0.12)` background, `#FCA5A5` text, `rgba(239,68,68,0.28)` border.
 
 ## Spacing & Sizing Summary
 
 | Element | Value |
 |---|---|
 | Page padding | `px-5 pt-16 pb-24` |
-| Max content width | 640px |
+| Max content width | 960px |
 | History panel width | 256px |
 | Card border-radius | `rounded-2xl` (16px) |
 | Button border-radius | `rounded-xl` (12px) |
 | Card border | `1px solid var(--separator)` |
-| Card shadow | `0 1px 4px rgba(0,0,0,0.06)` |
+| Card shadow | `0 1px 2px rgba(0,0,0,0.3)` |
+| Highlighted card shadow | `0 4px 20px rgba(0,0,0,0.45)` |
 | Section gap | 10px–12px |
 | Timeline dot (original) | 18px |
 | Timeline dot (variation) | 10px |
+| Verb table tense-label column | 110px |
