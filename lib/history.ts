@@ -1,3 +1,4 @@
+import { useSyncExternalStore } from "react";
 import { ConjugateResponse } from "@/app/api/conjugate/route";
 
 export interface HistoryEntry {
@@ -10,9 +11,15 @@ export interface HistoryEntry {
 
 const KEY = "french_history";
 const MAX = 1000;
+const EVENT = "french-history-change";
+const EMPTY: HistoryEntry[] = [];
 
-export function loadHistory(): HistoryEntry[] {
-  if (typeof window === "undefined") return [];
+// Cached snapshot — useSyncExternalStore compares refs, so we must return the
+// same array reference until the store actually changes.
+let snapshot: HistoryEntry[] | null = null;
+
+function readHistory(): HistoryEntry[] {
+  if (typeof window === "undefined") return EMPTY;
   try {
     return JSON.parse(localStorage.getItem(KEY) ?? "[]");
   } catch {
@@ -20,16 +27,50 @@ export function loadHistory(): HistoryEntry[] {
   }
 }
 
+export function loadHistory(): HistoryEntry[] {
+  return readHistory();
+}
+
+function getSnapshot(): HistoryEntry[] {
+  if (snapshot === null) snapshot = readHistory();
+  return snapshot;
+}
+
+function getServerSnapshot(): HistoryEntry[] {
+  return EMPTY;
+}
+
+function subscribe(callback: () => void): () => void {
+  if (typeof window === "undefined") return () => {};
+  window.addEventListener(EVENT, callback);
+  window.addEventListener("storage", callback);
+  return () => {
+    window.removeEventListener(EVENT, callback);
+    window.removeEventListener("storage", callback);
+  };
+}
+
+function invalidate(): void {
+  snapshot = null;
+  if (typeof window !== "undefined") window.dispatchEvent(new Event(EVENT));
+}
+
+export function useHistory(): HistoryEntry[] {
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+}
+
 export function saveEntry(entry: HistoryEntry): void {
-  const entries = loadHistory();
+  const entries = readHistory();
   entries.unshift(entry);
   if (entries.length > MAX) entries.length = MAX;
-  localStorage.setItem(KEY, JSON.stringify(entries));
+  if (typeof window !== "undefined") localStorage.setItem(KEY, JSON.stringify(entries));
+  invalidate();
 }
 
 export function deleteEntry(id: string): void {
-  const entries = loadHistory().filter((e) => e.id !== id);
-  localStorage.setItem(KEY, JSON.stringify(entries));
+  const entries = readHistory().filter((e) => e.id !== id);
+  if (typeof window !== "undefined") localStorage.setItem(KEY, JSON.stringify(entries));
+  invalidate();
 }
 
 export function groupByTense(entries: HistoryEntry[]): Record<string, HistoryEntry[]> {

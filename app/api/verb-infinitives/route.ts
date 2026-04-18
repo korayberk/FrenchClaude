@@ -51,7 +51,14 @@ Réponds UNIQUEMENT avec un tableau JSON d'infinitifs en minuscules, sans markdo
     if (!Array.isArray(parsed) || !parsed.every((v) => typeof v === "string")) {
       throw new Error("not an array of strings");
     }
-    const infinitives = (parsed as string[]).map((v) => v.trim().toLowerCase()).filter(Boolean);
+    const seen = new Set<string>();
+    const infinitives = (parsed as string[])
+      .map((v) => v.trim().toLowerCase())
+      .filter((v) => {
+        if (!v || seen.has(v)) return false;
+        seen.add(v);
+        return true;
+      });
     return NextResponse.json({
       infinitives,
       _usage: { input: message.usage.input_tokens, output: message.usage.output_tokens },

@@ -1,6 +1,6 @@
 import { VerbConjugation } from "@/app/api/conjugate/route";
 
-const KEY = "french_verb_cache";
+const KEY = "french_verb_cache_v2";
 const MAX = 500;
 
 type Cache = Record<string, VerbConjugation>;

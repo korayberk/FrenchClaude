@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import ApiKeyInput from "@/components/ApiKeyInput";
 import SentenceInput from "@/components/SentenceInput";
 import HistoryPanel from "@/components/HistoryPanel";
@@ -8,23 +8,44 @@ import TimelineResults from "@/components/TimelineResults";
 import VerbWidget, { VerbDisplay } from "@/components/VerbWidget";
 import Carousel from "@/components/Carousel";
 import { ConjugateResponse, VerbConjugation } from "./api/conjugate/route";
-import { HistoryEntry, loadHistory, saveEntry, deleteEntry } from "@/lib/history";
+import { HistoryEntry, useHistory, saveEntry, deleteEntry } from "@/lib/history";
 import { splitCached, saveVerbs } from "@/lib/verbCache";
 import { ModelId, DEFAULT_MODEL } from "@/components/ApiKeyInput";
 
+const SETTINGS_EVENT = "french-settings-change";
+const KEY_API = "anthropic_api_key";
+const KEY_MODEL = "anthropic_model";
+
+function subscribeSettings(callback: () => void): () => void {
+  if (typeof window === "undefined") return () => {};
+  window.addEventListener(SETTINGS_EVENT, callback);
+  window.addEventListener("storage", callback);
+  return () => {
+    window.removeEventListener(SETTINGS_EVENT, callback);
+    window.removeEventListener("storage", callback);
+  };
+}
+
+const readApiKey = () =>
+  typeof window === "undefined" ? "" : localStorage.getItem(KEY_API) ?? "";
+const readModel = (): ModelId =>
+  typeof window === "undefined"
+    ? DEFAULT_MODEL
+    : ((localStorage.getItem(KEY_MODEL) ?? DEFAULT_MODEL) as ModelId);
+
 export default function Home() {
-  const [apiKey, setApiKey] = useState("");
+  const apiKey = useSyncExternalStore(subscribeSettings, readApiKey, () => "");
+  const model = useSyncExternalStore(subscribeSettings, readModel, () => DEFAULT_MODEL);
+  const history = useHistory();
+
   const [sentence, setSentence] = useState("");
   const [result, setResult] = useState<ConjugateResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [history, setHistory] = useState<HistoryEntry[]>([]);
-  useEffect(() => { setHistory(loadHistory()); }, []);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [correctedFrom, setCorrectedFrom] = useState<string | null>(null);
   const [inputCollapsed, setInputCollapsed] = useState(false);
-  const [model, setModel] = useState<ModelId>(DEFAULT_MODEL);
   const [carouselIndex, setCarouselIndex] = useState(0);
 
   // Verbs — fetched lazily when user opens the Verbs tab
@@ -34,8 +55,11 @@ export default function Home() {
   const [verbUsage, setVerbUsage] = useState<{ input: number; output: number } | null>(null);
   const verbSentenceRef = useRef<string>("");   // tracks which sentence verbs were fetched for
 
-  const handleKeyChange = useCallback((key: string) => setApiKey(key), []);
-  const handleModelChange = useCallback((m: ModelId) => setModel(m), []);
+  const handleSettingsSave = useCallback((newKey: string, newModel: ModelId) => {
+    localStorage.setItem(KEY_API, newKey);
+    localStorage.setItem(KEY_MODEL, newModel);
+    window.dispatchEvent(new Event(SETTINGS_EVENT));
+  }, []);
 
   const fetchVerbs = useCallback(async (sentenceToUse: string, apiKeyToUse: string, modelToUse: string) => {
     if (!sentenceToUse || !apiKeyToUse) return;
@@ -161,7 +185,6 @@ export default function Home() {
         createdAt: Date.now(),
       };
       saveEntry(entry);
-      setHistory(loadHistory());
       setSelectedId(entry.id);
       setInputCollapsed(true);
     } catch (e) {
@@ -186,7 +209,6 @@ export default function Home() {
 
   const handleDelete = (id: string) => {
     deleteEntry(id);
-    setHistory(loadHistory());
     if (selectedId === id) setSelectedId(null);
   };
 
@@ -249,7 +271,7 @@ export default function Home() {
                 </p>
               </div>
             </div>
-            <ApiKeyInput onKeyChange={handleKeyChange} onModelChange={handleModelChange} />
+            <ApiKeyInput apiKey={apiKey} model={model} onSave={handleSettingsSave} />
           </div>
 
           {inputCollapsed && result ? (

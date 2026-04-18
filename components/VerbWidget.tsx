@@ -1,16 +1,23 @@
-import { Fragment } from "react";
+"use client";
+
+import { Fragment, useState } from "react";
 import { VerbConjugation } from "@/app/api/conjugate/route";
+import { getTenseConfig } from "@/lib/tenseOrder";
 
 export type VerbDisplay = VerbConjugation & { _source: "cache" | "cloud" };
 
-const TENSES = ["Présent", "Imparfait", "Passé composé", "Futur simple"];
+const COMMON_TENSES = ["Présent", "Imparfait", "Passé composé", "Futur simple"];
 
-const TENSE_ZONE: Record<string, string> = {
-  "Présent":         "present",
-  "Imparfait":       "past",
-  "Passé composé":   "near past",
-  "Futur simple":    "future",
-};
+const ALL_TENSES = [
+  "Plus-que-parfait",
+  "Passé simple",
+  "Imparfait",
+  "Passé composé",
+  "Présent",
+  "Futur proche",
+  "Futur simple",
+  "Conditionnel",
+].sort((a, b) => getTenseConfig(a).order - getTenseConfig(b).order);
 
 type RowKey = "je" | "tu" | "il_elle" | "nous" | "vous" | "ils_elles";
 
@@ -56,7 +63,11 @@ function SourceBadge({ source }: { source: "cache" | "cloud" }) {
   );
 }
 
-function VerbCard({ pair }: { pair: VerbDisplay[] }) {
+function VerbCard({ pair, tenses }: { pair: VerbDisplay[]; tenses: string[] }) {
+  // Grid/table share the same column template: 110px gutter + 2 equal sub-cols per verb.
+  // This keeps the verb-to-verb header divider aligned with the singulier/pluriel boundary below.
+  const headerGrid = `110px ${pair.map(() => "1fr 1fr").join(" ")}`;
+
   return (
     <div
       className="rounded-2xl overflow-hidden"
@@ -66,12 +77,12 @@ function VerbCard({ pair }: { pair: VerbDisplay[] }) {
         boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
       }}
     >
-      {/* Verb header(s) — grid columns match the table below */}
+      {/* Verb header(s) — each title spans both sub-cols of its verb */}
       <div
         className="py-3"
         style={{
           display: "grid",
-          gridTemplateColumns: pair.length === 2 ? "110px 1fr 1fr" : "110px 1fr",
+          gridTemplateColumns: headerGrid,
           borderBottom: "1px solid var(--separator)",
         }}
       >
@@ -79,14 +90,20 @@ function VerbCard({ pair }: { pair: VerbDisplay[] }) {
         {pair.map((v, i) => (
           <div
             key={v.verb}
-            className="flex items-baseline gap-2 px-4"
+            className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 px-4"
             style={{
+              gridColumn: "span 2",
               borderLeft: i === 1 ? "1px solid var(--separator)" : "none",
             }}
           >
             <span className="text-[15px] font-semibold italic" style={{ color: "var(--foreground)" }}>
               {v.verb}
             </span>
+            {v.meaning && (
+              <span className="text-[12px]" style={{ color: "var(--secondary-label)" }}>
+                {v.meaning}
+              </span>
+            )}
             <span className="text-[11px]" style={{ color: "var(--tertiary-label)" }}>
               infinitif
             </span>
@@ -97,10 +114,19 @@ function VerbCard({ pair }: { pair: VerbDisplay[] }) {
 
       {/* Table */}
       <div className="overflow-x-auto">
-        <table className="w-full border-collapse">
+        <table className="w-full border-collapse" style={{ tableLayout: "fixed" }}>
+          <colgroup>
+            <col style={{ width: 110 }} />
+            {pair.map((v) => (
+              <Fragment key={`${v.verb}-cols`}>
+                <col />
+                <col />
+              </Fragment>
+            ))}
+          </colgroup>
           <thead>
             <tr style={{ borderBottom: "1px solid var(--separator)" }}>
-              <th style={{ width: 110 }} />
+              <th />
               {pair.map((v, vi) =>
                 ["singulier", "pluriel"].map((label, li) => (
                   <th
@@ -122,12 +148,12 @@ function VerbCard({ pair }: { pair: VerbDisplay[] }) {
             </tr>
           </thead>
           <tbody>
-            {TENSES.map((tense, ti) => {
+            {tenses.map((tense, ti) => {
               return (
                 <tr
                   key={tense}
                   style={{
-                    borderBottom: ti < TENSES.length - 1 ? "1px solid var(--separator)" : "none",
+                    borderBottom: ti < tenses.length - 1 ? "1px solid var(--separator)" : "none",
                     background: ti % 2 === 1 ? "var(--surface)" : "transparent",
                   }}
                 >
@@ -136,7 +162,7 @@ function VerbCard({ pair }: { pair: VerbDisplay[] }) {
                       {tense}
                     </span>
                     <span className="text-[10px] uppercase tracking-wider" style={{ color: "var(--tertiary-label)" }}>
-                      {TENSE_ZONE[tense]}
+                      {getTenseConfig(tense).zone}
                     </span>
                   </td>
 
@@ -176,6 +202,8 @@ interface Props {
 }
 
 export default function VerbWidget({ verbs }: Props) {
+  const [showAll, setShowAll] = useState(false);
+
   if (!verbs || verbs.length === 0) {
     return (
       <p className="text-[13px] py-4" style={{ color: "var(--tertiary-label)" }}>
@@ -184,12 +212,46 @@ export default function VerbWidget({ verbs }: Props) {
     );
   }
 
+  const tensesToShow = showAll ? ALL_TENSES : COMMON_TENSES;
+  const hiddenCount = ALL_TENSES.length - tensesToShow.length;
   const pairs = chunkPairs(verbs);
 
   return (
     <div className="flex flex-col gap-4">
+      {/* Toggle */}
+      <div className="flex items-center justify-between">
+        <div
+          className="flex rounded-xl p-1"
+          style={{ background: "var(--separator)" }}
+        >
+          {(["Most Used", "All"] as const).map((label) => {
+            const active = label === "All" ? showAll : !showAll;
+            return (
+              <button
+                key={label}
+                onClick={() => setShowAll(label === "All")}
+                className="px-3 py-1 rounded-lg text-[12px] font-medium transition-all"
+                style={{
+                  background: active ? "var(--card)" : "transparent",
+                  color: active ? "var(--foreground)" : "var(--secondary-label)",
+                  boxShadow: active ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
+                }}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+
+        {!showAll && hiddenCount > 0 && (
+          <span className="text-[12px]" style={{ color: "var(--tertiary-label)" }}>
+            +{hiddenCount} more tense{hiddenCount !== 1 ? "s" : ""}
+          </span>
+        )}
+      </div>
+
       {pairs.map((pair, i) => (
-        <VerbCard key={i} pair={pair} />
+        <VerbCard key={i} pair={pair} tenses={tensesToShow} />
       ))}
     </div>
   );

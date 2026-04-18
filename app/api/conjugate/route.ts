@@ -10,6 +10,7 @@ export interface TenseVariation {
 
 export interface VerbConjugation {
   verb: string;
+  meaning?: string;
   conjugations: {
     tense: string;
     je: string;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 export const MODELS = [
   { id: "claude-sonnet-4-6",        label: "Sonnet 4.6",  note: "fast · balanced" },
@@ -12,36 +12,31 @@ export type ModelId = typeof MODELS[number]["id"];
 export const DEFAULT_MODEL: ModelId = "claude-sonnet-4-6";
 
 interface ApiKeyInputProps {
-  onKeyChange: (key: string) => void;
-  onModelChange: (model: ModelId) => void;
+  apiKey: string;
+  model: ModelId;
+  onSave: (apiKey: string, model: ModelId) => void;
 }
 
-export default function ApiKeyInput({ onKeyChange, onModelChange }: ApiKeyInputProps) {
+export default function ApiKeyInput({ apiKey, model, onSave }: ApiKeyInputProps) {
   const [open, setOpen] = useState(false);
-  const [key, setKey] = useState("");
-  const [model, setModel] = useState<ModelId>(DEFAULT_MODEL);
+  const [keyDraft, setKeyDraft] = useState(apiKey);
+  const [modelDraft, setModelDraft] = useState<ModelId>(model);
 
-  useEffect(() => {
-    const savedKey = localStorage.getItem("anthropic_api_key") ?? "";
-    const savedModel = (localStorage.getItem("anthropic_model") ?? DEFAULT_MODEL) as ModelId;
-    setKey(savedKey);
-    setModel(savedModel);
-    onKeyChange(savedKey);
-    onModelChange(savedModel);
-  }, [onKeyChange, onModelChange]);
+  const handleOpen = () => {
+    setKeyDraft(apiKey);
+    setModelDraft(model);
+    setOpen((o) => !o);
+  };
 
   const handleSave = () => {
-    localStorage.setItem("anthropic_api_key", key);
-    localStorage.setItem("anthropic_model", model);
-    onKeyChange(key);
-    onModelChange(model);
+    onSave(keyDraft, modelDraft);
     setOpen(false);
   };
 
   return (
     <div className="relative mt-1">
       <button
-        onClick={() => setOpen((o) => !o)}
+        onClick={handleOpen}
         title="Settings"
         className="flex items-center justify-center w-8 h-8 rounded-full transition-colors"
         style={{ background: open ? "var(--separator)" : "transparent", color: "var(--secondary-label)" }}
@@ -63,8 +58,8 @@ export default function ApiKeyInput({ onKeyChange, onModelChange }: ApiKeyInputP
             </div>
             <input
               type="password"
-              value={key}
-              onChange={(e) => setKey(e.target.value)}
+              value={keyDraft}
+              onChange={(e) => setKeyDraft(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSave()}
               placeholder="sk-ant-…"
               className="w-full text-[14px] px-3 py-2.5 rounded-xl focus:outline-none"
@@ -79,19 +74,19 @@ export default function ApiKeyInput({ onKeyChange, onModelChange }: ApiKeyInputP
               {MODELS.map((m) => (
                 <button
                   key={m.id}
-                  onClick={() => setModel(m.id)}
+                  onClick={() => setModelDraft(m.id)}
                   className="flex items-center justify-between px-3 py-2 rounded-xl text-left"
                   style={{
-                    background: model === m.id ? "var(--foreground)" : "var(--background)",
+                    background: modelDraft === m.id ? "var(--foreground)" : "var(--background)",
                     border: "1px solid var(--separator)",
                   }}
                 >
                   <span className="text-[13px] font-medium"
-                    style={{ color: model === m.id ? "var(--background)" : "var(--foreground)" }}>
+                    style={{ color: modelDraft === m.id ? "var(--background)" : "var(--foreground)" }}>
                     {m.label}
                   </span>
                   <span className="text-[11px]"
-                    style={{ color: model === m.id ? "rgba(13,13,15,0.6)" : "var(--tertiary-label)" }}>
+                    style={{ color: modelDraft === m.id ? "rgba(13,13,15,0.6)" : "var(--tertiary-label)" }}>
                     {m.note}
                   </span>
                 </button>

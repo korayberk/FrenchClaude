@@ -16,17 +16,26 @@ export async function POST(req: NextRequest) {
 
   const userPrompt = `Conjugue les verbes français suivants : ${JSON.stringify(infinitives)}
 
-Pour chaque verbe, fournis la conjugaison complète (je, tu, il/elle, nous, vous, ils/elles) aux 4 temps suivants : Présent, Imparfait, Passé composé, Futur simple.
+Pour chaque verbe, fournis :
+- "meaning" : la traduction anglaise de l'infinitif (ex : "to eat" pour "manger"). Courte, à la forme infinitive anglaise.
+- "conjugations" : la conjugaison complète (je, tu, il/elle, nous, vous, ils/elles) aux 8 temps suivants, dans cet ordre : Plus-que-parfait, Passé simple, Imparfait, Passé composé, Présent, Futur proche, Futur simple, Conditionnel. Évite le subjonctif.
+
+Pour le futur proche, utilise "aller" + infinitif (ex : "je vais manger"). Pour le passé composé et le plus-que-parfait, utilise l'auxiliaire approprié (avoir ou être) avec l'accord si nécessaire.
 
 Réponds UNIQUEMENT avec du JSON valide, sans markdown :
 [
   {
     "verb": "infinitif",
+    "meaning": "to ...",
     "conjugations": [
-      { "tense": "Présent", "je": "...", "tu": "...", "il_elle": "...", "nous": "...", "vous": "...", "ils_elles": "..." },
+      { "tense": "Plus-que-parfait", "je": "...", "tu": "...", "il_elle": "...", "nous": "...", "vous": "...", "ils_elles": "..." },
+      { "tense": "Passé simple", "je": "...", "tu": "...", "il_elle": "...", "nous": "...", "vous": "...", "ils_elles": "..." },
       { "tense": "Imparfait", "je": "...", "tu": "...", "il_elle": "...", "nous": "...", "vous": "...", "ils_elles": "..." },
       { "tense": "Passé composé", "je": "...", "tu": "...", "il_elle": "...", "nous": "...", "vous": "...", "ils_elles": "..." },
-      { "tense": "Futur simple", "je": "...", "tu": "...", "il_elle": "...", "nous": "...", "vous": "...", "ils_elles": "..." }
+      { "tense": "Présent", "je": "...", "tu": "...", "il_elle": "...", "nous": "...", "vous": "...", "ils_elles": "..." },
+      { "tense": "Futur proche", "je": "...", "tu": "...", "il_elle": "...", "nous": "...", "vous": "...", "ils_elles": "..." },
+      { "tense": "Futur simple", "je": "...", "tu": "...", "il_elle": "...", "nous": "...", "vous": "...", "ils_elles": "..." },
+      { "tense": "Conditionnel", "je": "...", "tu": "...", "il_elle": "...", "nous": "...", "vous": "...", "ils_elles": "..." }
     ]
   }
 ]`;
