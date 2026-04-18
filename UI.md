@@ -80,9 +80,15 @@
 - Original entry: 18px filled dot (`--foreground`) with a 6px `--background` center; inverted card (`--foreground` bg, `--background` text).
 - Variation entries: 10px open circle bordered in `--tertiary-label`; standard card (`--card` bg).
 
-#### Card anatomy (single-row layout)
-- Horizontal card: `[chip] → [french stacked over english]`.
+#### Card anatomy
+- Horizontal card: `[chip column] [french stacked over english]` with a fixed-width chip column so sentence text starts at the same x across every card.
+- Chip column: 170px wide, `shrink-0`, `flex flex-col gap-1 items-start mt-1`.
 - Tense chip: 11px uppercase, tinted accent per tense (see below). On the highlighted card, chip uses `rgba(13,13,15,0.12)` bg + `rgba(13,13,15,0.8)` text.
+- Combined tenses (e.g. "Passé composé (main clause) + Plus-que-parfait (subordinate clause)") render as multiple stacked chips:
+  - Split on `+`.
+  - Parentheticals stripped from chip text (`"Passé composé (main clause)"` → `"Passé composé"`).
+  - Identical parts collapse to a single chip (`"Imparfait + Imparfait"` → one "IMPARFAIT" chip).
+  - Each chip gets its own tint based on its own tense-key match.
 - French sentence: 17px medium.
 - English translation: 13px, `--secondary-label` (or `rgba(13,13,15,0.68)` on the highlighted card).
 - Usage note: not shown on the card; surfaced as a native browser tooltip via the card's `title` attribute.

@@ -155,6 +155,7 @@ export default function Home() {
     setVerbsError(null);
     setVerbUsage(null);
     verbSentenceRef.current = "";
+    setCarouselIndex(0);
 
     try {
       const res = await fetch("/api/conjugate", {
@@ -370,6 +371,7 @@ export default function Home() {
 
           {result && (
             <Carousel
+              active={carouselIndex}
               onSlideChange={setCarouselIndex}
               slides={[
                 {

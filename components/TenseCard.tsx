@@ -26,8 +26,26 @@ function badgeStyle(tense: string): BadgeStyle {
   return { background: "rgba(255,255,255,0.06)", color: "#A8A8AE" };
 }
 
+// "Passé composé (main clause) + Plus-que-parfait (subordinate clause)"
+// → ["Passé composé", "Plus-que-parfait"]
+// Same-tense repeats (e.g. "Imparfait + Imparfait") collapse to one chip.
+function splitTenses(tense: string): string[] {
+  const parts = tense.split(/\s*\+\s*/);
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const raw of parts) {
+    const cleaned = raw.replace(/\s*\([^)]*\)/g, "").trim();
+    if (!cleaned) continue;
+    const key = cleaned.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push(cleaned);
+  }
+  return result.length > 0 ? result : [tense];
+}
+
 export default function TenseCard({ tense, french, english, usage, highlight }: TenseCardProps) {
-  const badge = badgeStyle(tense);
+  const tenses = splitTenses(tense);
 
   return (
     <div
@@ -41,16 +59,24 @@ export default function TenseCard({ tense, french, english, usage, highlight }: 
           : "0 1px 2px rgba(0,0,0,0.3)",
       }}
     >
-      <span
-        className="shrink-0 mt-1 text-[11px] font-semibold px-2.5 py-[3px] rounded-full tracking-wide uppercase"
-        style={
-          highlight
-            ? { background: "rgba(13,13,15,0.12)", color: "rgba(13,13,15,0.8)" }
-            : badge
-        }
-      >
-        {tense}
-      </span>
+      <div className="shrink-0 flex flex-col gap-1 items-start mt-1" style={{ width: 170 }}>
+        {tenses.map((t, i) => {
+          const badge = badgeStyle(t);
+          return (
+            <span
+              key={`${t}-${i}`}
+              className="text-[11px] font-semibold px-2.5 py-[3px] rounded-full tracking-wide uppercase"
+              style={
+                highlight
+                  ? { background: "rgba(13,13,15,0.12)", color: "rgba(13,13,15,0.8)" }
+                  : badge
+              }
+            >
+              {t}
+            </span>
+          );
+        })}
+      </div>
 
       <div className="flex-1 min-w-0 flex flex-col gap-0.5">
         <p

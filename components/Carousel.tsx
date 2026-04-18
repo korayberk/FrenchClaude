@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, ReactNode } from "react";
+import { useRef, ReactNode } from "react";
 
 interface Slide {
   label: string;
@@ -9,17 +9,14 @@ interface Slide {
 
 interface Props {
   slides: Slide[];
-  onSlideChange?: (index: number) => void;
+  active: number;
+  onSlideChange: (index: number) => void;
 }
 
-export default function Carousel({ slides, onSlideChange }: Props) {
-  const [active, setActive] = useState(0);
+export default function Carousel({ slides, active, onSlideChange }: Props) {
   const startX = useRef<number | null>(null);
 
-  const goTo = (i: number) => {
-    setActive(i);
-    onSlideChange?.(i);
-  };
+  const goTo = (i: number) => onSlideChange(i);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     startX.current = e.touches[0].clientX;
