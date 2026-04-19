@@ -23,7 +23,7 @@ export interface VerbConjugation {
 }
 
 export interface ConjugateResponse {
-  _usage?: { input: number; output: number };
+  _usage?: { input: number; output: number; model?: string };
   corrected_input?: string;
   original: {
     french: string;
@@ -38,7 +38,7 @@ export interface ConjugateResponse {
 const SYSTEM_PROMPT = `Tu es un expert en langue française. Tu penses et raisonnes en français, puis traduis en anglais.`;
 
 export async function POST(req: NextRequest) {
-  const { sentence, apiKey, model = "claude-sonnet-4-6" } = await req.json();
+  const { sentence, apiKey } = await req.json();
 
   if (!sentence || !apiKey) {
     return NextResponse.json({ error: "Missing sentence or API key" }, { status: 400 });
@@ -63,7 +63,7 @@ Réponds UNIQUEMENT avec du JSON valide, sans markdown :
 }`;
 
   const message = await client.messages.create({
-    model,
+    model: "claude-sonnet-4-6",
     max_tokens: 4096,
     system: SYSTEM_PROMPT,
     messages: [{ role: "user", content: userPrompt }],
@@ -83,7 +83,7 @@ Réponds UNIQUEMENT avec du JSON valide, sans markdown :
     const data = JSON.parse(jsonText);
     return NextResponse.json({
       ...data,
-      _usage: { input: message.usage.input_tokens, output: message.usage.output_tokens },
+      _usage: { input: message.usage.input_tokens, output: message.usage.output_tokens, model: "Sonnet 4.6" },
     });
   } catch {
     return NextResponse.json({ error: "Could not parse response — please try again." }, { status: 500 });

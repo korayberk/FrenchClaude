@@ -2,7 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
-  const { sentence, apiKey, model = "claude-sonnet-4-6" } = await req.json();
+  const { sentence, apiKey } = await req.json();
 
   if (!sentence || !apiKey) {
     return NextResponse.json({ error: "Missing sentence or API key" }, { status: 400 });
@@ -21,7 +21,7 @@ Réponds UNIQUEMENT avec un tableau JSON d'infinitifs en minuscules, sans markdo
 ["infinitif1", "infinitif2", ...]`;
 
   const message = await client.messages.create({
-    model,
+    model: "claude-haiku-4-5-20251001",
     max_tokens: 512,
     system: "Tu es un expert en conjugaison française. Réponds uniquement avec du JSON valide.",
     messages: [{ role: "user", content: userPrompt }],
@@ -61,7 +61,7 @@ Réponds UNIQUEMENT avec un tableau JSON d'infinitifs en minuscules, sans markdo
       });
     return NextResponse.json({
       infinitives,
-      _usage: { input: message.usage.input_tokens, output: message.usage.output_tokens },
+      _usage: { input: message.usage.input_tokens, output: message.usage.output_tokens, model: "Haiku 4.5" },
     });
   } catch (e) {
     console.error("[/api/verb-infinitives] JSON parse failed:", e, "\nRaw text:", rawText);

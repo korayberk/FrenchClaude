@@ -11,11 +11,9 @@ import Carousel from "@/components/Carousel";
 import { ConjugateResponse, VerbConjugation } from "./api/conjugate/route";
 import { HistoryEntry, useHistory, saveEntry, deleteEntry, clearAllHistory } from "@/lib/history";
 import { splitCached, saveVerbs, clearVerbCache } from "@/lib/verbCache";
-import { ModelId, DEFAULT_MODEL } from "@/components/ApiKeyInput";
 
 const SETTINGS_EVENT = "french-settings-change";
 const KEY_API = "anthropic_api_key";
-const KEY_MODEL = "anthropic_model";
 
 function subscribeSettings(callback: () => void): () => void {
   if (typeof window === "undefined") return () => {};
@@ -29,14 +27,9 @@ function subscribeSettings(callback: () => void): () => void {
 
 const readApiKey = () =>
   typeof window === "undefined" ? "" : localStorage.getItem(KEY_API) ?? "";
-const readModel = (): ModelId =>
-  typeof window === "undefined"
-    ? DEFAULT_MODEL
-    : ((localStorage.getItem(KEY_MODEL) ?? DEFAULT_MODEL) as ModelId);
 
 export default function Home() {
   const apiKey = useSyncExternalStore(subscribeSettings, readApiKey, () => "");
-  const model = useSyncExternalStore(subscribeSettings, readModel, () => DEFAULT_MODEL);
   const history = useHistory();
 
   const [sentence, setSentence] = useState("");
@@ -53,16 +46,15 @@ export default function Home() {
   const [verbs, setVerbs] = useState<VerbDisplay[] | null>(null);
   const [verbsLoading, setVerbsLoading] = useState(false);
   const [verbsError, setVerbsError] = useState<string | null>(null);
-  const [verbUsage, setVerbUsage] = useState<{ input: number; output: number } | null>(null);
+  const [verbUsage, setVerbUsage] = useState<{ input: number; output: number; model: string } | null>(null);
   const verbSentenceRef = useRef<string>("");   // tracks which sentence verbs were fetched for
 
-  const handleSettingsSave = useCallback((newKey: string, newModel: ModelId) => {
+  const handleSettingsSave = useCallback((newKey: string) => {
     localStorage.setItem(KEY_API, newKey);
-    localStorage.setItem(KEY_MODEL, newModel);
     window.dispatchEvent(new Event(SETTINGS_EVENT));
   }, []);
 
-  const fetchVerbs = useCallback(async (sentenceToUse: string, apiKeyToUse: string, modelToUse: string) => {
+  const fetchVerbs = useCallback(async (sentenceToUse: string, apiKeyToUse: string) => {
     if (!sentenceToUse || !apiKeyToUse) return;
     setVerbsLoading(true);
     setVerbsError(null);
@@ -71,7 +63,7 @@ export default function Home() {
       const idRes = await fetch("/api/verb-infinitives", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sentence: sentenceToUse, apiKey: apiKeyToUse, model: modelToUse }),
+        body: JSON.stringify({ sentence: sentenceToUse, apiKey: apiKeyToUse }),
       });
       const idData = await idRes.json();
       if (idData.error) {
@@ -80,18 +72,19 @@ export default function Home() {
         return;
       }
       const infinitives: string[] = idData.infinitives ?? [];
-      const idUsage = idData._usage ?? { input: 0, output: 0 };
+      const idUsage: { input: number; output: number; model?: string } =
+        idData._usage ?? { input: 0, output: 0 };
 
       // Step 2: diff against cache, fetch only missing conjugations.
       const { hits, misses } = splitCached(infinitives);
-      let conjUsage = { input: 0, output: 0 };
+      let conjUsage: { input: number; output: number; model?: string } = { input: 0, output: 0 };
       let newVerbs: VerbConjugation[] = [];
 
       if (misses.length > 0) {
         const cjRes = await fetch("/api/verbs", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ infinitives: misses, apiKey: apiKeyToUse, model: modelToUse }),
+          body: JSON.stringify({ infinitives: misses, apiKey: apiKeyToUse }),
         });
         const cjData = await cjRes.json();
         if (cjData.error) {
@@ -124,6 +117,7 @@ export default function Home() {
       setVerbUsage({
         input: idUsage.input + conjUsage.input,
         output: idUsage.output + conjUsage.output,
+        model: idUsage.model ?? conjUsage.model ?? "Haiku 4.5",
       });
     } catch (e) {
       setVerbsError(e instanceof Error ? e.message : "Unknown error");
@@ -141,8 +135,8 @@ export default function Home() {
     if (!sentence || !apiKey) return;
     if (verbSentenceRef.current === sentence) return;
     verbSentenceRef.current = sentence;
-    fetchVerbs(sentence, apiKey, model);
-  }, [carouselIndex, verbs, sentence, apiKey, model, fetchVerbs]);
+    fetchVerbs(sentence, apiKey);
+  }, [carouselIndex, verbs, sentence, apiKey, fetchVerbs]);
 
   const handleSubmit = async () => {
     if (!sentence.trim() || !apiKey) return;
@@ -162,7 +156,7 @@ export default function Home() {
       const res = await fetch("/api/conjugate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sentence: sentence.trim(), apiKey, model }),
+        body: JSON.stringify({ sentence: sentence.trim(), apiKey }),
       });
 
       if (!res.ok) {
@@ -240,7 +234,7 @@ export default function Home() {
       <VerbWidget verbs={verbs ?? []} />
       {verbUsage && (
         <p className="text-[11px] text-right" style={{ color: "var(--tertiary-label)" }}>
-          {verbUsage.input.toLocaleString()} in · {verbUsage.output.toLocaleString()} out · {(verbUsage.input + verbUsage.output).toLocaleString()} total tokens
+          {verbUsage.input.toLocaleString()} in · {verbUsage.output.toLocaleString()} out · {(verbUsage.input + verbUsage.output).toLocaleString()} total tokens · {verbUsage.model}
         </p>
       )}
     </div>
@@ -291,7 +285,7 @@ export default function Home() {
               >
                 Verbs
               </Link>
-              <ApiKeyInput apiKey={apiKey} model={model} onSave={handleSettingsSave} />
+              <ApiKeyInput apiKey={apiKey} onSave={handleSettingsSave} />
             </div>
           </div>
 
@@ -323,6 +317,7 @@ export default function Home() {
               {result._usage && (
                 <p className="text-[11px] text-right mb-5" style={{ color: "var(--tertiary-label)" }}>
                   {result._usage.input.toLocaleString()} in · {result._usage.output.toLocaleString()} out · {(result._usage.input + result._usage.output).toLocaleString()} total tokens
+                  {result._usage.model && ` · ${result._usage.model}`}
                 </p>
               )}
             </>

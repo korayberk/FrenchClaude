@@ -44,10 +44,9 @@
 
 ### Settings Panel (floating, 300px wide)
 - Positioned top-right relative to gear icon.
-- Sections: API Key (password input) + Model picker (stacked list of 3 options).
-- Active model: `--foreground` background + `--background` text.
-- Inactive model: `--background` surface with `--foreground` text.
+- Single section: API Key (password input) with a short "Stored in your browser only." hint.
 - Save / Cancel buttons, right-aligned.
+- Model choice is fixed server-side and not surfaced in the UI.
 
 ### Input Area (expanded state)
 - Card (`--card`), 1px `--separator` border, subtle shadow, `rounded-2xl`.
@@ -60,7 +59,7 @@
 ### Input Area (collapsed state)
 - Single-line pill: card surface, full-width, sentence text (15px) + "Edit" badge (`--foreground` bg, `--background` text, `rounded-lg`).
 - "corrected" badge (green pill: `rgba(34,197,94,0.16)` bg, `#86EFAC` text) shown between sentence and Edit button when corrected.
-- Token usage line below pill: 11px, `--tertiary-label`, right-aligned. Format: `N in · M out · T total tokens`.
+- Token usage line below pill: 11px, `--tertiary-label`, right-aligned. Format: `N in · M out · T total tokens · ModelName` (e.g. "Sonnet 4.6"). Model suffix is omitted for legacy history entries that predate model labelling.
 
 ### Carousel
 - Segmented control (`--separator` background, `rounded-xl`), self-start (left-aligned).

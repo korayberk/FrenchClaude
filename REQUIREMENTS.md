@@ -92,11 +92,10 @@
 
 - Gear icon opens a settings panel.
 - User enters their Anthropic API key (stored in browser localStorage only, never sent to any server other than Anthropic).
-- User selects which Claude model to use:
-  - Sonnet 4.6 (default) — fast, balanced
-  - Opus 4.7 — best quality, slower
-  - Haiku 4.5 — cheapest, quick
-- Settings are persisted in localStorage.
+- The API key is persisted in localStorage.
+- Model choice is not user-configurable. The server routes hardcode the model per task:
+  - Sentence conjugation (`/api/conjugate`): Claude Sonnet 4.6 — needs nuance for tense variations and English translations.
+  - Verb identification (`/api/verb-infinitives`) and verb conjugation (`/api/verbs`): Claude Haiku 4.5 — structured grammar tasks, cheaper and faster.
 
 ## Layout
 

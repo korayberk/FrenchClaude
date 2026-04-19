@@ -2,34 +2,22 @@
 
 import { useState } from "react";
 
-export const MODELS = [
-  { id: "claude-sonnet-4-6",        label: "Sonnet 4.6",  note: "fast · balanced" },
-  { id: "claude-opus-4-7",          label: "Opus 4.7",    note: "best · slower" },
-  { id: "claude-haiku-4-5-20251001",label: "Haiku 4.5",   note: "cheapest · quick" },
-] as const;
-
-export type ModelId = typeof MODELS[number]["id"];
-export const DEFAULT_MODEL: ModelId = "claude-sonnet-4-6";
-
 interface ApiKeyInputProps {
   apiKey: string;
-  model: ModelId;
-  onSave: (apiKey: string, model: ModelId) => void;
+  onSave: (apiKey: string) => void;
 }
 
-export default function ApiKeyInput({ apiKey, model, onSave }: ApiKeyInputProps) {
+export default function ApiKeyInput({ apiKey, onSave }: ApiKeyInputProps) {
   const [open, setOpen] = useState(false);
   const [keyDraft, setKeyDraft] = useState(apiKey);
-  const [modelDraft, setModelDraft] = useState<ModelId>(model);
 
   const handleOpen = () => {
     setKeyDraft(apiKey);
-    setModelDraft(model);
     setOpen((o) => !o);
   };
 
   const handleSave = () => {
-    onSave(keyDraft, modelDraft);
+    onSave(keyDraft);
     setOpen(false);
   };
 
@@ -50,7 +38,6 @@ export default function ApiKeyInput({ apiKey, model, onSave }: ApiKeyInputProps)
         <div className="absolute right-0 top-10 z-10 w-[300px] rounded-2xl p-5 flex flex-col gap-4"
           style={{ background: "var(--card)", border: "1px solid var(--separator)", boxShadow: "0 12px 40px rgba(0,0,0,0.6)" }}>
 
-          {/* API Key */}
           <div className="flex flex-col gap-2">
             <div>
               <p className="text-[14px] font-semibold" style={{ color: "var(--foreground)" }}>Anthropic API Key</p>
@@ -65,33 +52,6 @@ export default function ApiKeyInput({ apiKey, model, onSave }: ApiKeyInputProps)
               className="w-full text-[14px] px-3 py-2.5 rounded-xl focus:outline-none"
               style={{ background: "var(--background)", border: "1px solid var(--separator)", color: "var(--foreground)" }}
             />
-          </div>
-
-          {/* Model picker */}
-          <div className="flex flex-col gap-2">
-            <p className="text-[14px] font-semibold" style={{ color: "var(--foreground)" }}>Model</p>
-            <div className="flex flex-col gap-1">
-              {MODELS.map((m) => (
-                <button
-                  key={m.id}
-                  onClick={() => setModelDraft(m.id)}
-                  className="flex items-center justify-between px-3 py-2 rounded-xl text-left"
-                  style={{
-                    background: modelDraft === m.id ? "var(--foreground)" : "var(--background)",
-                    border: "1px solid var(--separator)",
-                  }}
-                >
-                  <span className="text-[13px] font-medium"
-                    style={{ color: modelDraft === m.id ? "var(--background)" : "var(--foreground)" }}>
-                    {m.label}
-                  </span>
-                  <span className="text-[11px]"
-                    style={{ color: modelDraft === m.id ? "rgba(13,13,15,0.6)" : "var(--tertiary-label)" }}>
-                    {m.note}
-                  </span>
-                </button>
-              ))}
-            </div>
           </div>
 
           <div className="flex gap-2 justify-end">
