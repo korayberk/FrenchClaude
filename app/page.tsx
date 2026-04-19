@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import Link from "next/link";
 import ApiKeyInput from "@/components/ApiKeyInput";
 import SentenceInput from "@/components/SentenceInput";
 import HistoryPanel from "@/components/HistoryPanel";
@@ -281,7 +282,17 @@ export default function Home() {
                 </p>
               </div>
             </div>
-            <ApiKeyInput apiKey={apiKey} model={model} onSave={handleSettingsSave} />
+            <div className="flex items-center gap-2">
+              <Link
+                href="/verbs"
+                className="text-[13px] px-2 py-1 rounded-lg transition-colors hover:[color:var(--foreground)]"
+                style={{ color: "var(--secondary-label)" }}
+                title="Browse cached verbs"
+              >
+                Verbs
+              </Link>
+              <ApiKeyInput apiKey={apiKey} model={model} onSave={handleSettingsSave} />
+            </div>
           </div>
 
           {inputCollapsed && result ? (

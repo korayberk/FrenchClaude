@@ -1,9 +1,14 @@
+import { useSyncExternalStore } from "react";
 import { VerbConjugation } from "@/app/api/conjugate/route";
 
 const KEY = "french_verb_cache_v2";
 const MAX = 500;
+const EVENT = "french-verb-cache-change";
+const EMPTY: Cache = {};
 
 type Cache = Record<string, VerbConjugation>;
+
+let snapshot: Cache | null = null;
 
 export function loadVerbCache(): Cache {
   if (typeof window === "undefined") return {};
@@ -12,6 +17,34 @@ export function loadVerbCache(): Cache {
   } catch {
     return {};
   }
+}
+
+function getSnapshot(): Cache {
+  if (snapshot === null) snapshot = loadVerbCache();
+  return snapshot;
+}
+
+function getServerSnapshot(): Cache {
+  return EMPTY;
+}
+
+function subscribe(callback: () => void): () => void {
+  if (typeof window === "undefined") return () => {};
+  window.addEventListener(EVENT, callback);
+  window.addEventListener("storage", callback);
+  return () => {
+    window.removeEventListener(EVENT, callback);
+    window.removeEventListener("storage", callback);
+  };
+}
+
+function invalidate(): void {
+  snapshot = null;
+  if (typeof window !== "undefined") window.dispatchEvent(new Event(EVENT));
+}
+
+export function useVerbCache(): Cache {
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }
 
 export function splitCached(
@@ -32,6 +65,7 @@ export function splitCached(
 export function clearVerbCache(): void {
   if (typeof window === "undefined") return;
   localStorage.removeItem(KEY);
+  invalidate();
 }
 
 export function saveVerbs(verbs: VerbConjugation[]): void {
@@ -49,4 +83,5 @@ export function saveVerbs(verbs: VerbConjugation[]): void {
     for (let i = 0; i < drop; i++) delete cache[keys[i]];
   }
   localStorage.setItem(KEY, JSON.stringify(cache));
+  invalidate();
 }

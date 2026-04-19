@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { HistoryEntry, groupByTense, groupByDay, relativeTime } from "@/lib/history";
 
 type SortMode = "tense" | "date-desc" | "date-asc";
@@ -165,14 +166,25 @@ export default function HistoryPanel({
             </div>
           </div>
         ) : (
-          <button
-            onClick={() => setConfirmingClear(true)}
-            className="w-full text-[12px] py-1.5 rounded-lg transition-colors"
-            style={{ background: "transparent", color: "var(--tertiary-label)", border: "1px solid var(--separator)" }}
-            title="Delete all history and cached verb conjugations"
-          >
-            Clear all history & cache
-          </button>
+          <div className="flex flex-col gap-2">
+            <Link
+              href="/verbs"
+              onClick={onClose}
+              className="block w-full text-center text-[12px] py-1.5 rounded-lg transition-colors"
+              style={{ background: "transparent", color: "var(--secondary-label)", border: "1px solid var(--separator)" }}
+              title="Browse all cached verbs"
+            >
+              Browse cached verbs
+            </Link>
+            <button
+              onClick={() => setConfirmingClear(true)}
+              className="w-full text-[12px] py-1.5 rounded-lg transition-colors"
+              style={{ background: "transparent", color: "var(--tertiary-label)", border: "1px solid var(--separator)" }}
+              title="Delete all history and cached verb conjugations"
+            >
+              Clear all history & cache
+            </button>
+          </div>
         )}
       </div>
     </div>

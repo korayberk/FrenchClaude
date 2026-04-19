@@ -199,10 +199,11 @@ function VerbCard({ pair, tenses }: { pair: VerbDisplay[]; tenses: string[] }) {
 
 interface Props {
   verbs: VerbDisplay[];
+  defaultShowAll?: boolean;
 }
 
-export default function VerbWidget({ verbs }: Props) {
-  const [showAll, setShowAll] = useState(false);
+export default function VerbWidget({ verbs, defaultShowAll }: Props) {
+  const [showAll, setShowAll] = useState(!!defaultShowAll);
 
   if (!verbs || verbs.length === 0) {
     return (

@@ -40,7 +40,7 @@
 
 ### Header
 - Left: clock icon (mobile only) + app title "French Tenses" (28px semibold) + subtitle "Type a sentence in French — see it across tenses" (15px, `--secondary-label`).
-- Right: gear icon button (18px, `--secondary-label`) that opens the Settings panel.
+- Right: "Verbs" text link (13px, `--secondary-label`, hover → `--foreground`) pointing to `/verbs`, then gear icon button (18px, `--secondary-label`) that opens the Settings panel.
 
 ### Settings Panel (floating, 300px wide)
 - Positioned top-right relative to gear icon.
@@ -146,12 +146,24 @@
 
 #### Clear-all footer
 - Sits at the bottom of the panel, 1px `--separator` top border, `px-3 py-3`.
-- Idle state: single full-width button, transparent background, `--tertiary-label` text, `--separator` border, `rounded-lg` — "Clear all history & cache".
-- Confirmation state (after first click):
+- Idle state: vertical stack of two full-width pills (`flex-col gap-2`):
+  - "Browse cached verbs" — transparent bg, `--secondary-label` text, `--separator` border, `rounded-lg`, 12px. Links to `/verbs`; click also dismisses the mobile slide-over.
+  - "Clear all history & cache" — transparent bg, `--tertiary-label` text, `--separator` border, `rounded-lg`, 12px.
+- Confirmation state (after clicking Clear): the browse link is hidden and the button group replaces it:
   - Explainer line (11px, `--secondary-label`): "Delete all history and cached verb conjugations?"
   - "Delete everything" button: red-tinted (`rgba(239,68,68,0.16)` bg, `#FCA5A5` text, `rgba(239,68,68,0.32)` border), half-width.
   - "Cancel" button: `--separator` bg, `--secondary-label` text, half-width. Reverts to idle state.
 - Confirming the action clears localStorage for history and the verb cache; the panel re-renders to its empty state.
+
+### Verb Browser (`/verbs`)
+- Standalone route; no history sidebar, no carousel. Main column uses the same `max-w-[960px]` + `px-5 pt-16 pb-24` as the home page.
+- Back link (top of page): "← French Tenses" (13px, `--secondary-label`) → `/`.
+- Header row: title "Verb browser" (28px semibold) + subtitle "All cached conjugations" (15px, `--secondary-label`). Right side shows verb count (13px, `--tertiary-label`, e.g. "27 verbs") when the cache is non-empty.
+- Search input: `--card` bg, 1px `--separator` border, `rounded-xl`, transparent `<input>` inside (15px, `--foreground` text), placeholder "Search by infinitive or meaning…". Filters the list by infinitive or English meaning (case-insensitive substring).
+- Results: `VerbWidget` in "All tenses" view by default (`defaultShowAll` prop). Every card shows the "cached" badge. Toggle back to "Most Used" remains available.
+- Empty states:
+  - Cache empty: centered card (`--card` bg, `--separator` border, `rounded-2xl`) — "No cached verbs yet." headline (14px, `--secondary-label`) + prompt with an underlined link back to the main page (13px, `--tertiary-label`).
+  - Query with no matches: inline text "No verbs match "<query>"." (13px, `--tertiary-label`).
 
 ### Error Banner
 - `rounded-xl`, 14px, inline below input area.

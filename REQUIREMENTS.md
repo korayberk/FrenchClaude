@@ -46,6 +46,20 @@
 - On verb lookup, cached infinitives are served immediately; only missing ones hit the API.
 - Cache badge on each verb card indicates source: "cached" (local) or "fresh" (just fetched).
 
+### Verb browser (`/verbs`)
+
+- Standalone page listing every verb in the local cache, sorted alphabetically.
+- Reuses the verb card component in "All tenses" view by default (toggle to "Most Used" remains available).
+- Search box filters the list by French infinitive or English meaning (case-insensitive substring match).
+- Verb count is shown next to the page title.
+- Empty states:
+  - No cached verbs: prompt to conjugate a sentence on the main page.
+  - Query with no matches: inline "No verbs match …" message.
+- Entry points:
+  - "Verbs" link in the main-page header (next to the gear icon).
+  - "Browse cached verbs" link in the History panel footer (above the Clear button; hidden during the Clear confirmation step). On mobile, clicking the link also dismisses the History slide-over.
+- Back link in the page header returns to `/`.
+
 ## Input Behavior
 
 - Textarea accepts free-form French text.
